@@ -29,44 +29,76 @@ export type ScenarioOutputs = Pick<
   | "irr"
 >;
 
-export const defaultScenarioAssumptions: Record<
-  ScenarioId,
-  ScenarioAssumptions
-> = {
-  bear: {
-    revenueGrowth: 0.35,
-    exitRevenueMultiple: 4,
-    futureDilution: 0.35,
-  },
-  base: {
-    revenueGrowth: 0.8,
-    exitRevenueMultiple: 6,
-    futureDilution: 0.25,
-  },
-  bull: {
-    revenueGrowth: 1,
-    exitRevenueMultiple: 8,
-    futureDilution: 0.2,
-  },
-};
+export function buildScenarioAssumptions(
+  inputs: AnalysisInputs,
+): Record<ScenarioId, ScenarioAssumptions> {
+  return {
+    bear: {
+      revenueGrowth: inputs.revenueGrowth * 0.5,
+      exitRevenueMultiple: Math.max(1, inputs.expectedExitRevenueMultiple - 2),
+      futureDilution: Math.min(0.9, inputs.expectedFutureDilution + 0.1),
+    },
+    base: {
+      revenueGrowth: inputs.revenueGrowth,
+      exitRevenueMultiple: inputs.expectedExitRevenueMultiple,
+      futureDilution: inputs.expectedFutureDilution,
+    },
+    bull: {
+      revenueGrowth: inputs.revenueGrowth * 1.25,
+      exitRevenueMultiple: inputs.expectedExitRevenueMultiple + 2,
+      futureDilution: Math.max(0, inputs.expectedFutureDilution - 0.05),
+    },
+  };
+}
 
-export const defaultScenarioDrafts: Record<ScenarioId, ScenarioDraft> = {
-  bear: {
-    revenueGrowth: "35",
-    exitRevenueMultiple: "4",
-    futureDilution: "35",
-  },
-  base: {
-    revenueGrowth: "80",
-    exitRevenueMultiple: "6",
-    futureDilution: "25",
-  },
-  bull: {
-    revenueGrowth: "100",
-    exitRevenueMultiple: "8",
-    futureDilution: "20",
-  },
-};
+function formatEditableNumber(value: number): string {
+  if (!Number.isFinite(value)) {
+    return "";
+  }
+
+  return String(Math.round(value * 100) / 100);
+}
+
+function assumptionToDraft(assumptions: ScenarioAssumptions): ScenarioDraft {
+  return {
+    revenueGrowth: formatEditableNumber(assumptions.revenueGrowth * 100),
+    exitRevenueMultiple: formatEditableNumber(assumptions.exitRevenueMultiple),
+    futureDilution: formatEditableNumber(assumptions.futureDilution * 100),
+  };
+}
+
+export function buildScenarioDrafts(
+  inputs: AnalysisInputs,
+): Record<ScenarioId, ScenarioDraft> {
+  const assumptions = buildScenarioAssumptions(inputs);
+
+  return {
+    bear: assumptionToDraft(assumptions.bear),
+    base: assumptionToDraft(assumptions.base),
+    bull: assumptionToDraft(assumptions.bull),
+  };
+}
+
+function draftsMatch(left: ScenarioDraft, right: ScenarioDraft) {
+  return (
+    left.revenueGrowth === right.revenueGrowth &&
+    left.exitRevenueMultiple === right.exitRevenueMultiple &&
+    left.futureDilution === right.futureDilution
+  );
+}
+
+export function resolveScenarioAssumption(
+  inputs: AnalysisInputs,
+  id: ScenarioId,
+  draft: ScenarioDraft,
+): ScenarioAssumptions | null {
+  const assumptions = buildScenarioAssumptions(inputs);
+  if (draftsMatch(draft, assumptionToDraft(assumptions[id]))) {
+    return assumptions[id];
+  }
+
+  return parseScenarioDraft(draft);
+}
 
 export function parseScenarioDraft(
   draft: ScenarioDraft,

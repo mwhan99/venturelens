@@ -23,9 +23,9 @@ import {
 import { parseNumericInput, parsePercentInput } from "@/lib/finance/parse";
 import { assessRiskFlags } from "@/lib/finance/risk";
 import {
+  buildScenarioDrafts,
   calculateScenario,
-  defaultScenarioDrafts,
-  parseScenarioDraft,
+  resolveScenarioAssumption,
   type ScenarioDraft,
   type ScenarioId,
 } from "@/lib/finance/scenarios";
@@ -45,8 +45,13 @@ export function AnalyzeStartupForm() {
   const [totalAddressableMarket, setTotalAddressableMarket] = useState<
     number | null
   >(null);
-  const [scenarioDrafts, setScenarioDrafts] =
-    useState<Record<ScenarioId, ScenarioDraft>>(defaultScenarioDrafts);
+  const [scenarioDrafts, setScenarioDrafts] = useState<
+    Record<ScenarioId, ScenarioDraft>
+  >({
+    bear: { revenueGrowth: "", exitRevenueMultiple: "", futureDilution: "" },
+    base: { revenueGrowth: "", exitRevenueMultiple: "", futureDilution: "" },
+    bull: { revenueGrowth: "", exitRevenueMultiple: "", futureDilution: "" },
+  });
   const resultsRef = useRef<HTMLDivElement>(null);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -125,7 +130,7 @@ export function AnalyzeStartupForm() {
     setTotalAddressableMarket(
       parseNumericInput(formData.get("totalAddressableMarket")),
     );
-    setScenarioDrafts(defaultScenarioDrafts);
+    setScenarioDrafts(buildScenarioDrafts(nextInputs));
     window.requestAnimationFrame(() => {
       resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
@@ -136,8 +141,8 @@ export function AnalyzeStartupForm() {
       return [];
     }
 
-    const bear = parseScenarioDraft(scenarioDrafts.bear);
-    const bull = parseScenarioDraft(scenarioDrafts.bull);
+    const bear = resolveScenarioAssumption(inputs, "bear", scenarioDrafts.bear);
+    const bull = resolveScenarioAssumption(inputs, "bull", scenarioDrafts.bull);
 
     return assessRiskFlags({
       analysisInputs: inputs,

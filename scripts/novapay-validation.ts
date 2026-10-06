@@ -4,13 +4,12 @@ import {
   formatMoic,
   formatPercent,
   formatRunwayMonths,
-  formatScenarioCurrency,
 } from "../src/lib/finance/format";
 import { parsePercentInput } from "../src/lib/finance/parse";
 import { assessRiskFlags } from "../src/lib/finance/risk";
 import {
+  buildScenarioAssumptions,
   calculateScenario,
-  defaultScenarioAssumptions,
   type ScenarioId,
 } from "../src/lib/finance/scenarios";
 
@@ -66,12 +65,12 @@ const expectedScenarios: Record<
   }
 > = {
   bear: {
-    projectedExitRevenue: "$6,726,050.16",
-    projectedExitValuation: "$26,904,200.63",
+    projectedExitRevenue: "$8,067,360",
+    projectedExitValuation: "$32,269,440",
     dilutedInvestorOwnership: "10.8%",
-    investorExitProceeds: "$2,914,621.73",
-    moic: "1.5x",
-    irr: "7.8%",
+    investorExitProceeds: "$3,495,856",
+    moic: "1.7x",
+    irr: "11.8%",
   },
   base: {
     projectedExitRevenue: "$28,343,520",
@@ -104,15 +103,33 @@ for (const key of Object.keys(
   }
 }
 
+const scenarioAssumptions = buildScenarioAssumptions(novaPayInput);
+
+if (
+  scenarioAssumptions.base.revenueGrowth !== novaPayInput.revenueGrowth ||
+  scenarioAssumptions.base.exitRevenueMultiple !==
+    novaPayInput.expectedExitRevenueMultiple ||
+  scenarioAssumptions.base.futureDilution !== novaPayInput.expectedFutureDilution
+) {
+  failed += 1;
+  console.error("Base scenario assumptions do not match the user's inputs");
+}
+
+const baseScenario = calculateScenario(novaPayInput, scenarioAssumptions.base);
+if (baseScenario.moic !== novaPay.moic || baseScenario.irr !== novaPay.irr) {
+  failed += 1;
+  console.error(
+    `Base scenario returns do not match financial analysis: MOIC ${baseScenario.moic} vs ${novaPay.moic}, IRR ${baseScenario.irr} vs ${novaPay.irr}`,
+  );
+}
+
 for (const id of Object.keys(expectedScenarios) as ScenarioId[]) {
-  const outputs = calculateScenario(novaPayInput, defaultScenarioAssumptions[id]);
+  const outputs = calculateScenario(novaPayInput, scenarioAssumptions[id]);
   const actual = {
-    projectedExitRevenue: formatScenarioCurrency(outputs.projectedExitRevenue),
-    projectedExitValuation: formatScenarioCurrency(
-      outputs.projectedExitValuation,
-    ),
+    projectedExitRevenue: formatCurrency(outputs.projectedExitRevenue),
+    projectedExitValuation: formatCurrency(outputs.projectedExitValuation),
     dilutedInvestorOwnership: formatPercent(outputs.dilutedInvestorOwnership),
-    investorExitProceeds: formatScenarioCurrency(outputs.investorExitProceeds),
+    investorExitProceeds: formatCurrency(outputs.investorExitProceeds),
     moic: formatMoic(outputs.moic),
     irr: formatPercent(outputs.irr),
   };
@@ -127,8 +144,8 @@ for (const id of Object.keys(expectedScenarios) as ScenarioId[]) {
   }
 }
 
-const bear = calculateScenario(novaPayInput, defaultScenarioAssumptions.bear);
-const bull = calculateScenario(novaPayInput, defaultScenarioAssumptions.bull);
+const bear = calculateScenario(novaPayInput, scenarioAssumptions.bear);
+const bull = calculateScenario(novaPayInput, scenarioAssumptions.bull);
 const riskFlags = assessRiskFlags({
   analysisInputs: novaPayInput,
   analysisResults: novaPay,
@@ -161,7 +178,7 @@ const expectedRisk = [
   },
   {
     metric: "Scenario Sensitivity",
-    value: "83.4 percentage points",
+    value: "79.5 percentage points",
     status: "High Sensitivity",
   },
 ];

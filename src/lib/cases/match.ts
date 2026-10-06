@@ -8,8 +8,8 @@ import {
 } from "@/data/historical-cases";
 import { deriveQuantitativeRiskTags } from "@/lib/cases/risk-tags";
 import {
+  buildScenarioAssumptions,
   calculateScenario,
-  defaultScenarioAssumptions,
 } from "@/lib/finance/scenarios";
 import { assessRiskFlags, type RiskFlag } from "@/lib/finance/risk";
 import type { SavedCompany } from "@/lib/storage/companies";
@@ -33,14 +33,9 @@ export type HistoricalCaseMatchResult = {
 };
 
 function scenarioIrrs(company: SavedCompany) {
-  const bear = calculateScenario(
-    company.financialInputs,
-    defaultScenarioAssumptions.bear,
-  );
-  const bull = calculateScenario(
-    company.financialInputs,
-    defaultScenarioAssumptions.bull,
-  );
+  const assumptions = buildScenarioAssumptions(company.financialInputs);
+  const bear = calculateScenario(company.financialInputs, assumptions.bear);
+  const bull = calculateScenario(company.financialInputs, assumptions.bull);
 
   return { bearIrr: bear.irr, bullIrr: bull.irr };
 }

@@ -14,8 +14,8 @@ import {
 } from "@/lib/finance/format";
 import type { RiskFlag } from "@/lib/finance/risk";
 import {
+  buildScenarioAssumptions,
   calculateScenario,
-  defaultScenarioAssumptions,
   type ScenarioId,
   type ScenarioOutputs,
 } from "@/lib/finance/scenarios";
@@ -128,19 +128,12 @@ function joinSentences(parts: string[]) {
 }
 
 function companyScenarios(company: SavedCompany) {
+  const assumptions = buildScenarioAssumptions(company.financialInputs);
+
   return {
-    bear: calculateScenario(
-      company.financialInputs,
-      defaultScenarioAssumptions.bear,
-    ),
-    base: calculateScenario(
-      company.financialInputs,
-      defaultScenarioAssumptions.base,
-    ),
-    bull: calculateScenario(
-      company.financialInputs,
-      defaultScenarioAssumptions.bull,
-    ),
+    bear: calculateScenario(company.financialInputs, assumptions.bear),
+    base: calculateScenario(company.financialInputs, assumptions.base),
+    bull: calculateScenario(company.financialInputs, assumptions.bull),
   } satisfies Record<ScenarioId, ScenarioOutputs>;
 }
 

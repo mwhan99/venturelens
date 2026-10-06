@@ -3,13 +3,13 @@
 import { useMemo } from "react";
 import type { AnalysisInputs } from "@/lib/finance/engine";
 import {
+  formatCurrency,
   formatMoic,
   formatPercent,
-  formatScenarioCurrency,
 } from "@/lib/finance/format";
 import {
   calculateScenario,
-  parseScenarioDraft,
+  resolveScenarioAssumption,
   type ScenarioDraft,
   type ScenarioId,
 } from "@/lib/finance/scenarios";
@@ -91,8 +91,10 @@ export function ScenarioAnalysis({
 }) {
   const scenarios = useMemo(() => {
     return (Object.keys(scenarioMeta) as ScenarioId[]).map((id) => {
-      const parsed = parseScenarioDraft(drafts[id]);
-      const outputs = parsed ? calculateScenario(inputs, parsed) : null;
+      const assumptions = resolveScenarioAssumption(inputs, id, drafts[id]);
+      const outputs = assumptions
+        ? calculateScenario(inputs, assumptions)
+        : null;
 
       return { id, outputs };
     });
@@ -176,7 +178,7 @@ export function ScenarioAnalysis({
                   label="Projected Exit Revenue"
                   value={
                     outputs
-                      ? formatScenarioCurrency(outputs.projectedExitRevenue)
+                      ? formatCurrency(outputs.projectedExitRevenue)
                       : "—"
                   }
                 />
@@ -184,7 +186,7 @@ export function ScenarioAnalysis({
                   label="Projected Exit Valuation"
                   value={
                     outputs
-                      ? formatScenarioCurrency(outputs.projectedExitValuation)
+                      ? formatCurrency(outputs.projectedExitValuation)
                       : "—"
                   }
                 />
@@ -200,7 +202,7 @@ export function ScenarioAnalysis({
                   label="Investor Exit Proceeds"
                   value={
                     outputs
-                      ? formatScenarioCurrency(outputs.investorExitProceeds)
+                      ? formatCurrency(outputs.investorExitProceeds)
                       : "—"
                   }
                 />

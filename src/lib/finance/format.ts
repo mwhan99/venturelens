@@ -35,7 +35,7 @@ export function formatPercent(value: number): string {
     return "—";
   }
 
-  return `${(value * 100).toFixed(2)}%`;
+  return `${(value * 100).toFixed(1)}%`;
 }
 
 export function formatCompactPercent(value: number): string {
@@ -48,7 +48,7 @@ export function formatCompactPercent(value: number): string {
     return `${Math.round(percent)}%`;
   }
 
-  return `${percent.toFixed(2)}%`;
+  return `${percent.toFixed(1)}%`;
 }
 
 export function formatPercentagePoints(value: number): string {
@@ -56,7 +56,7 @@ export function formatPercentagePoints(value: number): string {
     return "—";
   }
 
-  return value.toFixed(2);
+  return value.toFixed(1);
 }
 
 export function formatMoic(value: number): string {
@@ -64,7 +64,7 @@ export function formatMoic(value: number): string {
     return "—";
   }
 
-  return `${value.toFixed(2)}x`;
+  return `${value.toFixed(1)}x`;
 }
 
 export function formatRunwayMonths(value: number): string {
@@ -72,10 +72,5 @@ export function formatRunwayMonths(value: number): string {
     return "—";
   }
 
-  const rounded =
-    Math.abs(value - Math.round(value)) < 1e-9
-      ? Math.round(value).toString()
-      : value.toFixed(2);
-
-  return `${rounded} months`;
+  return `${Math.round(value)} months`;
 }

@@ -32,13 +32,13 @@ const expectedBaseAnalysis = {
   monthlyBurn: "$150,000",
   runwayMonths: "16 months",
   postMoneyValuation: "$12,000,000",
-  initialInvestorOwnership: "16.67%",
-  dilutedInvestorOwnership: "12.50%",
+  initialInvestorOwnership: "16.7%",
+  dilutedInvestorOwnership: "12.5%",
   projectedExitRevenue: "$28,343,520",
   projectedExitValuation: "$170,061,120",
   investorExitProceeds: "$21,257,640",
-  moic: "10.63x",
-  irr: "60.43%",
+  moic: "10.6x",
+  irr: "60.4%",
 } as const;
 
 const actualBaseAnalysis = {
@@ -68,26 +68,26 @@ const expectedScenarios: Record<
   bear: {
     projectedExitRevenue: "$6,726,050.16",
     projectedExitValuation: "$26,904,200.63",
-    dilutedInvestorOwnership: "10.83%",
+    dilutedInvestorOwnership: "10.8%",
     investorExitProceeds: "$2,914,621.73",
-    moic: "1.46x",
-    irr: "7.82%",
+    moic: "1.5x",
+    irr: "7.8%",
   },
   base: {
     projectedExitRevenue: "$28,343,520",
     projectedExitValuation: "$170,061,120",
-    dilutedInvestorOwnership: "12.50%",
+    dilutedInvestorOwnership: "12.5%",
     investorExitProceeds: "$21,257,640",
-    moic: "10.63x",
-    irr: "60.43%",
+    moic: "10.6x",
+    irr: "60.4%",
   },
   bull: {
     projectedExitRevenue: "$48,000,000",
     projectedExitValuation: "$384,000,000",
-    dilutedInvestorOwnership: "13.33%",
+    dilutedInvestorOwnership: "13.3%",
     investorExitProceeds: "$51,200,000",
-    moic: "25.60x",
-    irr: "91.27%",
+    moic: "25.6x",
+    irr: "91.3%",
   },
 };
 
@@ -161,7 +161,7 @@ const expectedRisk = [
   },
   {
     metric: "Scenario Sensitivity",
-    value: "83.45 percentage points",
+    value: "83.4 percentage points",
     status: "High Sensitivity",
   },
 ];

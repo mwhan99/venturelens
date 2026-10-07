@@ -50,9 +50,8 @@ export function PortfolioList() {
 
   return (
     <div className="space-y-4">
-      <div className="min-w-0 max-w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-        <div className="min-w-0 w-full max-w-full overflow-x-auto">
-          <table className="min-w-[56rem] w-full text-left text-sm">
+      <div className="max-w-full overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+          <table className="w-max min-w-full text-left text-sm">
             <thead className="bg-slate-50 text-[11px] uppercase tracking-[0.12em] text-slate-500">
               <tr>
                 <th className="px-5 py-3 font-medium">Company</th>
@@ -65,7 +64,7 @@ export function PortfolioList() {
                 <th className="px-5 py-3 font-medium">Modeled IRR</th>
                 <th className="px-5 py-3 font-medium">Concentration</th>
                 <th className="px-5 py-3 font-medium">Date analyzed</th>
-                <th className="px-5 py-3 font-medium">
+                <th className="whitespace-nowrap px-5 py-3 font-medium">
                   <span className="sr-only">Actions</span>
                 </th>
               </tr>
@@ -112,10 +111,10 @@ export function PortfolioList() {
                           company.businessRiskData.largestCustomerRevenue,
                         )}
                   </td>
-                  <td className="px-5 py-3.5 text-slate-600">
+                  <td className="whitespace-nowrap px-5 py-3.5 text-slate-600">
                     {formatAnalyzedDate(company.dateAnalyzed)}
                   </td>
-                  <td className="px-5 py-3.5">
+                  <td className="whitespace-nowrap px-5 py-3.5">
                     <button
                       type="button"
                       onClick={() => setPendingDelete(company)}
@@ -128,7 +127,6 @@ export function PortfolioList() {
               ))}
             </tbody>
           </table>
-        </div>
       </div>
 
       {pendingDelete ? (

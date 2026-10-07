@@ -1,6 +1,7 @@
 import {
   formatCompactPercent,
   formatMoic,
+  formatPercent,
   formatRunwayMonths,
 } from "@/lib/finance/format";
 import type { SavedCompany } from "@/lib/storage/companies";
@@ -117,26 +118,129 @@ function runwayInsight(left: SavedCompany, right: SavedCompany): ComparisonInsig
   };
 }
 
+function formatHorizon(years: number) {
+  const rounded = Math.round(years * 10) / 10;
+  const label = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+  return `${label} ${rounded === 1 ? "year" : "years"}`;
+}
+
 function returnInsight(left: SavedCompany, right: SavedCompany): ComparisonInsight {
   const leftMoic = left.calculatedMetrics.moic;
   const rightMoic = right.calculatedMetrics.moic;
+  const leftIrr = left.calculatedMetrics.irr;
+  const rightIrr = right.calculatedMetrics.irr;
   const leftName = named(left);
   const rightName = named(right);
+  const moicSame = leftMoic === rightMoic;
+  const irrSame = leftIrr === rightIrr;
 
-  if (leftMoic === rightMoic) {
+  if (moicSame && irrSame) {
     return {
       label: "Return Profile",
-      text: `${leftName} and ${rightName} have the same modeled MOIC (${formatMoic(leftMoic)}).`,
+      text: `${leftName} and ${rightName} have the same modeled MOIC (${formatMoic(leftMoic)}) and the same modeled IRR (${formatPercent(leftIrr)}).`,
     };
   }
 
-  const higher = leftMoic > rightMoic ? left : right;
-  const lower = leftMoic > rightMoic ? right : left;
+  const moicLeader = leftMoic > rightMoic ? left : rightMoic > leftMoic ? right : null;
+  const irrLeader = leftIrr > rightIrr ? left : rightIrr > leftIrr ? right : null;
+  const moicTrailer = moicLeader === left ? right : left;
+  const irrTrailer = irrLeader === left ? right : left;
+
+  if (moicLeader && irrLeader && moicLeader.id !== irrLeader.id) {
+    const longerHorizon =
+      moicLeader.financialInputs.investmentHorizon >
+      irrLeader.financialInputs.investmentHorizon;
+    const horizonNote = longerHorizon
+      ? ` That split fits a longer horizon at ${named(moicLeader)} (${formatHorizon(moicLeader.financialInputs.investmentHorizon)} vs ${formatHorizon(irrLeader.financialInputs.investmentHorizon)}).`
+      : " The two metrics point in different directions.";
+
+    return {
+      label: "Return Profile",
+      text: `${named(moicLeader)} has the higher modeled MOIC (${formatMoic(moicLeader.calculatedMetrics.moic)} vs ${formatMoic(moicTrailer.calculatedMetrics.moic)}), but ${named(irrLeader)} has the higher modeled IRR (${formatPercent(irrLeader.calculatedMetrics.irr)} vs ${formatPercent(irrTrailer.calculatedMetrics.irr)}).${horizonNote}`,
+    };
+  }
+
+  if (moicSame && irrLeader) {
+    return {
+      label: "Return Profile",
+      text: `${leftName} and ${rightName} have the same modeled MOIC (${formatMoic(leftMoic)}). ${named(irrLeader)} has the higher modeled IRR (${formatPercent(irrLeader.calculatedMetrics.irr)} vs ${formatPercent(irrTrailer.calculatedMetrics.irr)}).`,
+    };
+  }
+
+  if (irrSame && moicLeader) {
+    return {
+      label: "Return Profile",
+      text: `${named(moicLeader)} has the higher modeled MOIC (${formatMoic(moicLeader.calculatedMetrics.moic)} vs ${formatMoic(moicTrailer.calculatedMetrics.moic)}). Both have the same modeled IRR (${formatPercent(leftIrr)}).`,
+    };
+  }
+
+  const leader = moicLeader ?? irrLeader ?? left;
+  const other = leader === left ? right : left;
 
   return {
     label: "Return Profile",
-    text: `${named(higher)} has the higher modeled MOIC (${formatMoic(higher.calculatedMetrics.moic)} vs ${formatMoic(lower.calculatedMetrics.moic)}).`,
+    text: `${named(leader)} has the higher modeled MOIC (${formatMoic(leader.calculatedMetrics.moic)} vs ${formatMoic(other.calculatedMetrics.moic)}) and the higher modeled IRR (${formatPercent(leader.calculatedMetrics.irr)} vs ${formatPercent(other.calculatedMetrics.irr)}).`,
   };
+}
+
+function riskEdge(company: SavedCompany, other: SavedCompany) {
+  let score = 0;
+
+  if (company.calculatedMetrics.runwayMonths > other.calculatedMetrics.runwayMonths) {
+    score += 1;
+  } else if (company.calculatedMetrics.runwayMonths < other.calculatedMetrics.runwayMonths) {
+    score -= 1;
+  }
+
+  const margin = company.financialInputs.grossMargin;
+  const otherMargin = other.financialInputs.grossMargin;
+  if (margin !== null && otherMargin !== null) {
+    if (margin > otherMargin) {
+      score += 1;
+    } else if (margin < otherMargin) {
+      score -= 1;
+    }
+  }
+
+  const concentration = company.businessRiskData.largestCustomerRevenue;
+  const otherConcentration = other.businessRiskData.largestCustomerRevenue;
+  if (concentration !== null && otherConcentration !== null) {
+    if (concentration < otherConcentration) {
+      score += 1;
+    } else if (concentration > otherConcentration) {
+      score -= 1;
+    }
+  }
+
+  return score;
+}
+
+function overallTradeoff(left: SavedCompany, right: SavedCompany): ComparisonInsight {
+  const leftName = named(left);
+  const rightName = named(right);
+  const growthLeader =
+    left.financialInputs.revenueGrowth > right.financialInputs.revenueGrowth
+      ? left
+      : right.financialInputs.revenueGrowth > left.financialInputs.revenueGrowth
+        ? right
+        : null;
+  const leftRisk = riskEdge(left, right);
+  const riskLeader = leftRisk > 0 ? left : leftRisk < 0 ? right : null;
+
+  let text: string;
+  if (growthLeader && riskLeader && growthLeader.id === riskLeader.id) {
+    text = `${named(growthLeader)} has both the stronger growth case and the lower-risk profile.`;
+  } else if (growthLeader && riskLeader) {
+    text = `${named(growthLeader)} has the stronger growth case, while ${named(riskLeader)} has the lower-risk profile.`;
+  } else if (growthLeader) {
+    text = `${named(growthLeader)} has the stronger growth case, while margin, runway, and customer concentration do not give either company a clearly lower-risk profile.`;
+  } else if (riskLeader) {
+    text = `${named(riskLeader)} has the lower-risk profile, while revenue growth is similar.`;
+  } else {
+    text = `${leftName} and ${rightName} look similar on growth, margin, runway, and customer concentration.`;
+  }
+
+  return { label: "Overall trade-off", text };
 }
 
 function concentrationInsight(
@@ -190,5 +294,6 @@ export function buildComparisonInsights(
     runwayInsight(left, right),
     returnInsight(left, right),
     concentrationInsight(left, right),
+    overallTradeoff(left, right),
   ];
 }

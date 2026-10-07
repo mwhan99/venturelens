@@ -144,6 +144,15 @@ export function InvestmentMemoPage() {
         <div className="space-y-10 px-5 py-8 sm:px-10 print:px-0">
           <section>
             <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-900">
+              Executive Summary
+            </h3>
+            <p className="mt-3 text-sm leading-7 text-slate-700">
+              {memo.executiveSummary}
+            </p>
+          </section>
+
+          <section>
+            <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-900">
               1. Company Overview
             </h3>
             <p className="mt-3 text-sm leading-7 text-slate-700">

@@ -41,6 +41,7 @@ export type DiligenceQuestion = {
 
 export type InvestmentMemoModel = {
   company: SavedCompany;
+  executiveSummary: string;
   overview: {
     metrics: MemoMetric[];
     narrative: string;
@@ -127,6 +128,140 @@ function joinSentences(parts: string[]) {
   return parts.filter(Boolean).join(" ");
 }
 
+function joinList(items: string[]) {
+  if (items.length <= 1) {
+    return items[0] ?? "";
+  }
+
+  if (items.length === 2) {
+    return `${items[0]} and ${items[1]}`;
+  }
+
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+}
+
+function indefinite(value: string) {
+  return /^(8|11|18)/.test(value) ? "an" : "a";
+}
+
+function cautionPhrase(flag: RiskFlag) {
+  if (flag.tone !== "caution") {
+    return null;
+  }
+
+  if (flag.id === "runway") {
+    return `${flag.value} of runway`;
+  }
+
+  if (flag.id === "gross-margin") {
+    return `${indefinite(flag.value)} ${flag.value} gross margin`;
+  }
+
+  if (flag.id === "customer-concentration") {
+    return `${flag.value} of revenue from the largest customer`;
+  }
+
+  if (flag.id === "revenue-growth") {
+    return `only ${flag.value} revenue growth`;
+  }
+
+  if (flag.id === "scenario-sensitivity") {
+    return `a wide return range (${flag.value})`;
+  }
+
+  return null;
+}
+
+function buildExecutiveSummary(company: SavedCompany, flags: RiskFlag[]) {
+  const growth = flagById(flags, "revenue-growth");
+  const runway = flagById(flags, "runway");
+  const margin = flagById(flags, "gross-margin");
+  const concentration = flagById(flags, "customer-concentration");
+  const sensitivity = flagById(flags, "scenario-sensitivity");
+  const name = company.profile.companyName || "The company";
+
+  const strength =
+    growth?.tone === "positive"
+      ? `Strong ${growth.value} growth`
+      : margin?.tone === "positive"
+        ? `A strong ${margin.value} gross margin`
+        : runway?.tone === "positive"
+          ? `${runway.value} of cash runway`
+          : concentration?.tone === "positive"
+            ? `Diversified customer revenue (${concentration.value} from the largest customer)`
+            : null;
+
+  const risks = flags
+    .map(cautionPhrase)
+    .filter((phrase): phrase is string => phrase !== null && !phrase.startsWith("a wide return"));
+
+  const shortRunway = runway?.tone === "caution";
+  const lowMargin = margin?.tone === "caution";
+  const concentrated = concentration?.tone === "caution";
+  const weakGrowth = growth?.tone === "caution";
+
+  let implication = "the current screen does not show a single dominant operating risk";
+  if (shortRunway && lowMargin) {
+    implication =
+      "the company must raise soon on a business that isn't yet efficient";
+  } else if (shortRunway && concentrated) {
+    implication =
+      "the company must raise soon while revenue depends on a narrow customer base";
+  } else if (shortRunway) {
+    implication = "the company must raise soon";
+  } else if (lowMargin && concentrated) {
+    implication =
+      "the business is not yet efficient and depends on too few customers";
+  } else if (lowMargin) {
+    implication = "the business is not yet efficient";
+  } else if (concentrated) {
+    implication = "revenue depends heavily on one customer";
+  } else if (weakGrowth) {
+    implication = "commercial momentum is still limited";
+  }
+
+  let question = "what would have to change for this profile to weaken?";
+  if (lowMargin) {
+    question = "do margins improve with scale?";
+  } else if (shortRunway) {
+    question = "what does the company need to prove before the next raise?";
+  } else if (concentrated) {
+    question = "how durable is revenue if the largest customer leaves?";
+  } else if (weakGrowth) {
+    question = "what would it take for growth to reaccelerate?";
+  } else if (sensitivity?.tone === "caution") {
+    question = "which assumptions drive the return range?";
+  }
+
+  const sensitive = sensitivity?.tone === "caution";
+  let opening: string;
+  if (strength && risks.length > 0) {
+    const verb = risks.length === 1 ? "means" : "mean";
+    opening = `${strength}, but ${joinList(risks)} ${verb} ${implication}.`;
+  } else if (risks.length > 0) {
+    const verb = risks.length === 1 ? "means" : "mean";
+    const listed = joinList(risks);
+    opening = `${listed.charAt(0).toUpperCase()}${listed.slice(1)} ${verb} ${implication}.`;
+  } else if (strength && sensitive && sensitivity) {
+    opening = `${strength} is the clearest operating strength, but returns swing widely across scenarios (${sensitivity.value}).`;
+  } else if (sensitive && sensitivity) {
+    opening = `Returns swing widely across scenarios (${sensitivity.value}), and no other operating flag screens as high risk.`;
+  } else if (strength) {
+    opening = `${strength} is the clearest strength, and no operating flag screens as high risk.`;
+  } else {
+    opening = `${name} does not show a standout strength or a high-risk operating flag.`;
+  }
+
+  const sentences = [opening, `Key question: ${question}`];
+  if (sensitive && sensitivity && risks.length > 0) {
+    sentences.push(
+      `Returns also move sharply between the bear and bull cases (${sensitivity.value}).`,
+    );
+  }
+
+  return sentences.join(" ");
+}
+
 function companyScenarios(company: SavedCompany) {
   const assumptions = buildScenarioAssumptions(company.financialInputs);
 
@@ -145,32 +280,32 @@ function buildOverview(company: SavedCompany) {
 
   let identity: string;
   if (industry && stage) {
-    identity = `${name} is recorded as a ${stage}-stage ${industry} company.`;
+    identity = `${name} is a ${stage}-stage ${industry} company.`;
   } else if (industry) {
-    identity = `${name} is recorded in the ${industry} industry.`;
+    identity = `${name} operates in ${industry}.`;
   } else if (stage) {
-    identity = `${name} is recorded as a ${stage}-stage company.`;
+    identity = `${name} is a ${stage}-stage company.`;
   } else {
-    identity = `${name} is a saved screening record in VentureLens.`;
+    identity = `${name} is in the current VentureLens screen.`;
   }
 
   const customers =
     businessRiskData.customerCount === null
-      ? "Customer count is not recorded."
-      : `The record lists ${businessRiskData.customerCount} customers.`;
+      ? "Customer count was not provided."
+      : `The company has ${businessRiskData.customerCount} customers.`;
 
   const tam =
     businessRiskData.totalAddressableMarket === null
-      ? "Total addressable market is not recorded."
-      : `Stored TAM is ${formatCurrency(businessRiskData.totalAddressableMarket)}.`;
+      ? "TAM was not provided."
+      : `TAM is ${formatCurrency(businessRiskData.totalAddressableMarket)}.`;
 
   const source =
     company.source === "Simulated"
-      ? "This record is labeled Simulated."
+      ? "This is a simulated company for demonstration, not a live investment opportunity."
       : company.source === "Public Data"
-        ? "This record is labeled Public Data."
+        ? "The figures come from public data."
         : company.source === "Analyst Assumption"
-          ? "This record is labeled Analyst Assumption."
+          ? "The figures reflect analyst assumptions."
           : "";
 
   return {
@@ -199,7 +334,7 @@ function buildOverview(company: SavedCompany) {
     ],
     narrative: joinSentences([
       identity,
-      `Current revenue in the screening inputs is ${formatCurrency(financialInputs.currentRevenue)}.`,
+      `Current revenue is ${formatCurrency(financialInputs.currentRevenue)}.`,
       customers,
       tam,
       source,
@@ -219,20 +354,20 @@ function buildFinancial(
   const benchmark = buildDatasetBenchmark(company, companies);
 
   const growthSentence = growth
-    ? `Revenue growth is ${growth.value} and is classified as ${growth.status}. ${growth.explanation}`
-    : `Revenue growth in the current inputs is ${formatCompactPercent(financialInputs.revenueGrowth)}.`;
+    ? `Revenue is growing at ${growth.value}. ${growth.explanation}`
+    : `Revenue growth is ${formatCompactPercent(financialInputs.revenueGrowth)}.`;
 
   const marginSentence = margin
-    ? `Gross margin is ${margin.value} and is classified as ${margin.status}. ${margin.explanation}`
+    ? `Gross margin is ${margin.value}. ${margin.explanation}`
     : financialInputs.grossMargin === null
-      ? "Gross margin is not recorded."
-      : `Gross margin in the current inputs is ${formatCompactPercent(financialInputs.grossMargin)}.`;
+      ? "Gross margin was not provided."
+      : `Gross margin is ${formatCompactPercent(financialInputs.grossMargin)}.`;
 
   const runwaySentence = runway
-    ? `Runway is ${runway.value} and is classified as ${runway.status}. ${runway.explanation}`
-    : `Modeled runway is ${formatRunwayMonths(calculatedMetrics.runwayMonths)}.`;
+    ? `Runway is ${runway.value}. ${runway.explanation}`
+    : `Runway is ${formatRunwayMonths(calculatedMetrics.runwayMonths)}.`;
 
-  const burnSentence = `The current inputs show annual burn of ${formatCurrency(financialInputs.annualBurn)} and a cash balance of ${formatCurrency(financialInputs.cashBalance)}.`;
+  const burnSentence = `Annual burn is ${formatCurrency(financialInputs.annualBurn)}, with ${formatCurrency(financialInputs.cashBalance)} of cash on hand.`;
 
   const runwayMetric = benchmark.find((item) => item.id === "runway");
   const growthMetric = benchmark.find((item) => item.id === "revenueGrowth");
@@ -347,9 +482,9 @@ function buildReturns(company: SavedCompany) {
     ],
     disclaimer,
     narrative: joinSentences([
-      `The model indicates a MOIC of ${formatMoic(calculatedMetrics.moic)} and an IRR of ${formatPercent(calculatedMetrics.irr)} under the saved screening assumptions.`,
+      `On these assumptions, modeled MOIC is ${formatMoic(calculatedMetrics.moic)} and modeled IRR is ${formatPercent(calculatedMetrics.irr)}.`,
       `Projected exit revenue is ${formatCurrency(calculatedMetrics.projectedExitRevenue)} and projected exit valuation is ${formatCurrency(calculatedMetrics.projectedExitValuation)}.`,
-      "These results change if growth, exit multiple, dilution, or horizon inputs change.",
+      "Those results move if growth, the exit multiple, dilution, or the holding period changes.",
     ]),
   };
 }
@@ -436,26 +571,26 @@ function buildTakeaways(
 
   const strongestSignals =
     positive.length > 0
-      ? `The current inputs show ${positive
-          .map((flag) => `${flag.metric} classified as ${flag.status} (${flag.value})`)
-          .join("; ")}.`
-      : `The current inputs do not include a positively classified operating flag. Saved screening still records revenue growth of ${formatCompactPercent(company.financialInputs.revenueGrowth)} and runway of ${formatRunwayMonths(company.calculatedMetrics.runwayMonths)}.`;
+      ? `The strongest signals are ${positive
+          .map((flag) => `${flag.metric.toLowerCase()} at ${flag.value} (${flag.status.toLowerCase()})`)
+          .join(", ")}.`
+      : `Nothing in the operating screen stands out as a clear strength. Growth is ${formatCompactPercent(company.financialInputs.revenueGrowth)} and runway is ${formatRunwayMonths(company.calculatedMetrics.runwayMonths)}.`;
 
   const tagLabels = tags.map((tag) => RISK_TAG_LABELS[tag]);
   const primaryRisks = joinSentences([
     caution.length > 0
-      ? `The analysis highlights ${caution
-          .map((flag) => `${flag.metric} (${flag.status}, ${flag.value})`)
-          .join("; ")}.`
-      : "The analysis does not classify any of the standard operating flags as high-risk in the current record.",
+      ? `The main risks are ${caution
+          .map((flag) => `${flag.metric.toLowerCase()} at ${flag.value} (${flag.status.toLowerCase()})`)
+          .join(", ")}.`
+      : "None of the standard operating flags screen as high risk.",
     tagLabels.length > 0
-      ? `Quantitative risk tags generated from the existing outputs are ${tagLabels.join(", ")}.`
+      ? `Related risk tags are ${tagLabels.join(", ")}.`
       : "",
   ]);
 
   const scenarioDependency = sensitivity
-    ? `The model indicates ${sensitivity.status} to scenario assumptions, with a modeled IRR span of ${sensitivity.value} between the existing Bear and Bull cases.`
-    : "Scenario sensitivity is not available from the current outputs.";
+    ? `Returns show ${sensitivity.status.toLowerCase()}, with Bear-to-Bull IRR spanning ${sensitivity.value}.`
+    : "Scenario sensitivity is not available.";
 
   const furtherDiligence =
     questions.length > 0
@@ -482,6 +617,7 @@ export function buildInvestmentMemo(
 
   return {
     company,
+    executiveSummary: buildExecutiveSummary(company, flags),
     overview: buildOverview(company),
     financial: buildFinancial(company, flags, companies),
     terms: buildTerms(company),

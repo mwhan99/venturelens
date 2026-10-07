@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { DashboardSummaryCards } from "@/components/dashboard/DashboardSummaryCards";
 import { PageHeader, PageShell } from "@/components/PageChrome";
+import { DashboardDemoPrompt } from "@/components/portfolio/LoadDemoDataset";
 import { RecentStartups } from "@/components/RecentStartups";
 
 export default function DashboardPage() {
@@ -19,6 +20,8 @@ export default function DashboardPage() {
           </Link>
         }
       />
+
+      <DashboardDemoPrompt />
 
       <section className="mt-8 grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <DashboardSummaryCards />

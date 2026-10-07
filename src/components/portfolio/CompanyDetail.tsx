@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
+import { RiskAssessment } from "@/components/analyze/RiskAssessment";
 import { HistoricalCaseIntelligence } from "@/components/portfolio/HistoricalCaseIntelligence";
+import { assessCompanyRiskFlags } from "@/lib/cases/match";
 import { SimulatedBadge } from "@/components/SimulatedBadge";
 import {
   formatCompactPercent,
@@ -268,6 +270,8 @@ export function CompanyDetail({ id }: { id: string }) {
           value={formatPercent(company.calculatedMetrics.irr)}
         />
       </DetailSection>
+
+      <RiskAssessment flags={assessCompanyRiskFlags(company)} />
 
       <HistoricalCaseIntelligence company={company} />
     </div>

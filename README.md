@@ -5,7 +5,6 @@
 🔗 **Live demo:** https://venturelens-chi.vercel.app
 *(Click "Load demo dataset" on the dashboard to explore with 10 simulated startups.)*
 
-<!-- Replace with your screenshot: dashboard with demo data loaded -->
 ![Dashboard](docs/screenshots/dashboard.png)
 
 ---
@@ -32,7 +31,6 @@ VentureLens standardizes that first pass: the same inputs, the same scenario log
 | **Dataset Benchmark** | Each company's metrics against the median of the saved portfolio |
 | **Historical Cases** | Matches a company's risk pattern to sourced failure cases (WeWork, Bird, Fast, Airlift) and surfaces diligence questions |
 
-<!-- Replace with your screenshots -->
 ![Investment memo](docs/screenshots/memo.png)
 ![Historical case matching](docs/screenshots/historical-cases.png)
 

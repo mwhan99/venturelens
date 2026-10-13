@@ -6,6 +6,8 @@
   "conditional_median_months_label": "among rounds that were followed by another filing",
   "probability_another_filing_by_month_label": "Kaplan\u2013Meier probability that the round has been followed by another Form D filing by that month. Keys are months 1 through 36.",
   "month_length_days": 30.4375,
+  "min_gap_months": 3,
+  "min_gap_note": "Offerings within 90 days are merged into one round, so another filing cannot be observed before about 3 months. The probability is 0 for months 1\u20133 by construction. The app should say under 3 months is not measurable instead of showing 0%.",
   "min_rounds": 100,
   "probability_months": [
     1,

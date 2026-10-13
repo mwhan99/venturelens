@@ -28,7 +28,7 @@ Rounds with no later filing are treated as still under observation until 2026-09
 
 `observed_round_number` counts rounds in this Form D extract. It is not the company's true seed or Series A. A "round 1" can be the first filing we see, not the company's first raise.
 
-Form D covers exempt offerings under Regulation D and Section 4(a)(5). Amounts are what the issuer reported, and offerings within 90 days were merged into one round.
+Form D covers exempt offerings under Regulation D and Section 4(a)(5). Amounts are what the issuer reported, and offerings within 90 days were merged into one round. Because of that merge, another filing cannot show up before about 3 months. The probability of another filing is 0 for months 1–3 by construction. `benchmarks.json` records `min_gap_months` as 3 so the app can say "under 3 months: not measurable" instead of showing 0%.
 
 Other/Unclassified is the Form D industry label "Other." Benchmarks should report it on its own.
 

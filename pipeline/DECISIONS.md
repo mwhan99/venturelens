@@ -86,6 +86,8 @@ A new offering after 90 days is a proxy for "this company raised again." It is n
 
 The 90-day merge is a judgment call. Shorten it and one rolling close splits into two rounds. Lengthen it and two real raises collapse into one. The constant is the place to change it.
 
+The survival curves inherit that floor. A later round cannot start inside the 90-day window, which is about 3 months, so the probability of another Form D filing is 0 for months 1–3 by construction. `src/data/formd/benchmarks.json` sets `min_gap_months` to 3. The app should say "under 3 months: not measurable" instead of showing 0%.
+
 The extract starts and ends with the quarters on the SEC page. A company's first round may predate the extract, and its next round may not have been filed yet. Both make `observed_round_number` and `is_censored` depend on the window of data, not on the company's full life.
 
 ## Which companies count as startups

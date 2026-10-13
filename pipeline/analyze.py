@@ -41,9 +41,13 @@ ROUNDS_PATH = ROOT / "pipeline" / "data" / "processed" / "venture_rounds.parquet
 BENCHMARKS_PATH = ROOT / "src" / "data" / "formd" / "benchmarks.json"
 CHARTS_DIR = ROOT / "docs" / "charts"
 KM_CHART_PATH = CHARTS_DIR / "km_by_sector.png"
-MEDIAN_CHART_PATH = CHARTS_DIR / "median_months_by_sector_amount.png"
+FILED_AGAIN_CHART_PATH = CHARTS_DIR / "filed_again_24m_by_sector_amount.png"
+# Superseded by the 24-month rate chart. Removed on each run if a previous build left it behind.
+OLD_MEDIAN_CHART_PATH = CHARTS_DIR / "median_months_by_sector_amount.png"
 
 MIN_ROUNDS = 100
+# Offerings within 90 days are one round, so a later filing cannot show up before about 3 months.
+MIN_GAP_MONTHS = 3
 PROBABILITY_MONTHS = tuple(range(1, 37))
 CONDITIONAL_MEDIAN_LABEL = "among rounds that were followed by another filing"
 # A censored round dated on the dataset end has zero follow-up. Lifelines
@@ -295,43 +299,49 @@ def plot_km_by_sector(rounds: pd.DataFrame) -> None:
     plt.close(fig)
 
 
-def plot_median_by_amount(by_amount: list[dict[str, object]]) -> None:
-    lookup = {
-        (record["venture_sector"], record["amount_bucket"]): record["km_median_months"]
-        for record in by_amount
-    }
-    fig, ax = plt.subplots(figsize=(11.2, 6.2))
+def plot_filed_again_24m(by_amount: list[dict[str, object]]) -> None:
+    """Grouped bars of the 24-month Kaplan–Meier probability. Every segment is drawn."""
+    lookup: dict[tuple[object, object], float] = {}
+    for record in by_amount:
+        probabilities = record.get("probability_another_filing_by_month") or {}
+        value = probabilities.get("24") if isinstance(probabilities, dict) else None
+        key = (record["venture_sector"], record["amount_bucket"])
+        if not isinstance(value, (int, float)):
+            raise SystemExit(
+                "ERROR: missing 24-month probability for "
+                f"{record['venture_sector']} {record['amount_bucket']} "
+                f"({record.get('n_rounds')} rounds, status {record.get('status')})."
+            )
+        lookup[key] = float(value)
+
+    fig, ax = plt.subplots(figsize=(12.4, 6.8))
     x = np.arange(len(SECTOR_ORDER))
     width = 0.18
     for index, bucket in enumerate(BUCKET_ORDER):
-        heights = []
-        for sector in SECTOR_ORDER:
-            value = lookup.get((sector, bucket))
-            heights.append(np.nan if value is None else value)
+        heights = [lookup[(sector, bucket)] * 100.0 for sector in SECTOR_ORDER]
         offset = (index - (len(BUCKET_ORDER) - 1) / 2) * width
-        ax.bar(x + offset, heights, width=width, label=bucket, color=BUCKET_COLORS[bucket])
+        bars = ax.bar(x + offset, heights, width=width, label=bucket, color=BUCKET_COLORS[bucket])
+        for bar, height in zip(bars, heights):
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                height + 0.4,
+                f"{height:.1f}%",
+                ha="center",
+                va="bottom",
+                rotation=90,
+                fontsize=7,
+                color="#222222",
+            )
     ax.set_xticks(x, [sector.replace("/", "/\n") for sector in SECTOR_ORDER])
-    ax.set_ylabel("Kaplan–Meier median months until the next Form D filing")
+    ax.set_ylim(0, 58)
+    ax.set_ylabel("Percent of rounds")
     ax.set_xlabel("Sector")
-    ax.set_title("Median months until the next Form D filing, by sector and amount sold")
-    ax.legend(title="Amount sold", frameon=False)
+    ax.set_title("Share of rounds followed by another Form D filing within 24 months")
+    ax.legend(title="Amount sold", frameon=False, loc="upper right")
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
-    missing = sum(1 for value in lookup.values() if value is None)
     fig.tight_layout()
-    if missing:
-        fig.subplots_adjust(bottom=0.18)
-        fig.text(
-            0.5,
-            0.02,
-            "A missing bar means fewer than half of those rounds were followed by another Form D filing, "
-            f"or the segment has fewer than {MIN_ROUNDS} rounds.",
-            ha="center",
-            va="bottom",
-            fontsize=8,
-            color="#444444",
-        )
-    fig.savefig(MEDIAN_CHART_PATH, dpi=160)
+    fig.savefig(FILED_AGAIN_CHART_PATH, dpi=160)
     plt.close(fig)
 
 
@@ -357,6 +367,12 @@ def build_payload(end_date: pd.Timestamp, rounds: pd.DataFrame, results: dict[st
             "by that month. Keys are months 1 through 36."
         ),
         "month_length_days": DAYS_PER_MONTH,
+        "min_gap_months": MIN_GAP_MONTHS,
+        "min_gap_note": (
+            "Offerings within 90 days are merged into one round, so another filing cannot "
+            "be observed before about 3 months. The probability is 0 for months 1–3 by "
+            "construction. The app should say under 3 months is not measurable instead of showing 0%."
+        ),
         "min_rounds": MIN_ROUNDS,
         "probability_months": list(PROBABILITY_MONTHS),
         "counts": {
@@ -417,7 +433,9 @@ def main() -> int:
     CHARTS_DIR.mkdir(parents=True, exist_ok=True)
     BENCHMARKS_PATH.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     plot_km_by_sector(rounds)
-    plot_median_by_amount(results["by_sector_and_amount_bucket"])
+    plot_filed_again_24m(results["by_sector_and_amount_bucket"])
+    if OLD_MEDIAN_CHART_PATH.exists():
+        OLD_MEDIAN_CHART_PATH.unlink()
 
     comparison = format_comparison(rounds, results)
     print(f"Dataset end date (latest FILING_DATE): {end_date.date().isoformat()}")
@@ -438,7 +456,7 @@ def main() -> int:
     if size_bytes > 300 * 1024:
         raise SystemExit(f"ERROR: benchmarks.json is {size_bytes / 1024:.1f} KB, above the 300 KB limit.")
     print(f"Wrote {KM_CHART_PATH}")
-    print(f"Wrote {MEDIAN_CHART_PATH}")
+    print(f"Wrote {FILED_AGAIN_CHART_PATH}")
     return 0
 
 

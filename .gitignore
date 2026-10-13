@@ -42,3 +42,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# SEC Form D pipeline artifacts
+/pipeline/.venv/
+/pipeline/data/raw/
+/pipeline/data/processed/
+**/__pycache__/
+*.pyc

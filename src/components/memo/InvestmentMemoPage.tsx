@@ -184,6 +184,30 @@ export function InvestmentMemoPage() {
 
           <section>
             <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-900">
+              Financing Benchmark (SEC Form D)
+            </h3>
+            <div className="mt-3 space-y-3">
+              <p className="text-sm leading-7 text-slate-700">
+                {memo.financingBenchmark.headline}
+              </p>
+              {memo.financingBenchmark.median ? (
+                <p className="text-sm leading-7 text-slate-700">
+                  {memo.financingBenchmark.median}
+                </p>
+              ) : null}
+              {memo.financingBenchmark.caution ? (
+                <p className="text-sm leading-7 text-slate-700">
+                  {memo.financingBenchmark.caution}
+                </p>
+              ) : null}
+              <p className="text-xs leading-5 text-slate-500">
+                {memo.financingBenchmark.footnote}
+              </p>
+            </div>
+          </section>
+
+          <section>
+            <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-900">
               3. Investment Terms
             </h3>
             <dl className="mt-4">

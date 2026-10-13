@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
+import { FinancingBenchmarkCard } from "@/components/analyze/FinancingBenchmarkCard";
 import { RiskAssessment } from "@/components/analyze/RiskAssessment";
 import { HistoricalCaseIntelligence } from "@/components/portfolio/HistoricalCaseIntelligence";
 import { assessCompanyRiskFlags } from "@/lib/cases/match";
@@ -272,6 +273,12 @@ export function CompanyDetail({ id }: { id: string }) {
       </DetailSection>
 
       <RiskAssessment flags={assessCompanyRiskFlags(company)} />
+
+      <FinancingBenchmarkCard
+        industry={company.profile.industry}
+        investmentAmount={company.financialInputs.investmentAmount}
+        runwayMonths={company.calculatedMetrics.runwayMonths}
+      />
 
       <HistoricalCaseIntelligence company={company} />
     </div>

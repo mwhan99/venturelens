@@ -8,6 +8,7 @@ import {
   TextField,
 } from "@/components/analyze/FormFields";
 import { FinancialAnalysisResults } from "@/components/analyze/FinancialAnalysisResults";
+import { FinancingBenchmarkCard } from "@/components/analyze/FinancingBenchmarkCard";
 import { RiskAssessment } from "@/components/analyze/RiskAssessment";
 import {
   createSaveDraft,
@@ -317,6 +318,11 @@ export function AnalyzeStartupForm() {
             onDraftsChange={setScenarioDrafts}
           />
           <RiskAssessment flags={riskFlags} />
+          <FinancingBenchmarkCard
+            industry={industry}
+            investmentAmount={inputs.investmentAmount}
+            runwayMonths={results.runwayMonths}
+          />
           <SaveToVentureLens
             draft={createSaveDraft({
               companyName,

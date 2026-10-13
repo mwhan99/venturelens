@@ -26,6 +26,7 @@ VentureLens standardizes that first pass: the same inputs, the same scenario log
 | **Analyze Startup** | Runway, post-money valuation, ownership before and after dilution, exit value, MOIC, and IRR from a single form |
 | **Scenario Analysis** | Bear / Base / Bull cases built around *your* assumptions, editable side by side |
 | **Risk Assessment** | Rule-based flags for growth, runway, gross margin, customer concentration, and return sensitivity |
+| **Financing Benchmark** | SEC Form D rates for how often comparable rounds were followed by another filing within the company's runway |
 | **Investment Memo** | A structured screening memo with an auto-generated executive summary; printable to PDF |
 | **Compare Startups** | Side-by-side metrics plus insights that flag trade-offs (e.g., higher MOIC but lower IRR due to a longer horizon) |
 | **Dataset Benchmark** | Each company's metrics against the median of the saved portfolio |
@@ -58,6 +59,14 @@ Base uses the user's inputs. Bear halves growth, lowers the exit multiple by 2x,
 **4. Historical case matching** (`src/lib/cases/`)
 Flags are converted into risk tags (e.g., `runway-risk`, `high-burn`, `weak-capital-efficiency`). A company is matched to a historical case when they share at least two tags. Every match states the similarities, the differences, and that a shared pattern does not imply the same outcome.
 
+## Data
+
+VentureLens financing benchmarks come from public SEC Form D filings. The pipeline in `pipeline/` downloads the quarterly data sets, drops pooled funds and non-US issuers, keeps young operating companies in venture-relevant industries, and merges offerings within 90 days into one round. Of 365,344 filers, 68,441 are venture startups in the benchmark file, covering 114,695 completed rounds. A later Form D filing is a lower bound on fundraising, because SAFEs, notes, and some rounds never appear. The results are written up in [pipeline/FINDINGS.md](pipeline/FINDINGS.md). The cleaning rules are in [pipeline/DECISIONS.md](pipeline/DECISIONS.md).
+
+![Kaplan–Meier curves by sector](docs/charts/km_by_sector.png)
+
+![Share of rounds followed by another Form D filing within 24 months](docs/charts/filed_again_24m_by_sector_amount.png)
+
 ## Limitations
 
 This is a screening prototype, not a valuation model. Being explicit about what it doesn't do:
@@ -70,7 +79,6 @@ This is a screening prototype, not a valuation model. Being explicit about what 
 
 ## Roadmap
 
-- Replace user-typed inputs with real fundraising data from public **SEC Form D filings** to identify startups likely to raise their next round
 - Sector-specific risk thresholds
 - A growth-decay model instead of constant compounding
 - An expanded, validated case library that tests whether the flags actually predict outcomes

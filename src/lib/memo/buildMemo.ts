@@ -19,6 +19,12 @@ import {
   type ScenarioId,
   type ScenarioOutputs,
 } from "@/lib/finance/scenarios";
+import {
+  financingBenchmarkSummarySentence,
+  formatFinancingBenchmark,
+  getFinancingBenchmark,
+  type FinancingBenchmarkCopy,
+} from "@/lib/formd/benchmarks";
 import type { SavedCompany } from "@/lib/storage/companies";
 
 export type MemoMetric = {
@@ -42,6 +48,7 @@ export type DiligenceQuestion = {
 export type InvestmentMemoModel = {
   company: SavedCompany;
   executiveSummary: string;
+  financingBenchmark: FinancingBenchmarkCopy;
   overview: {
     metrics: MemoMetric[];
     narrative: string;
@@ -256,6 +263,17 @@ function buildExecutiveSummary(company: SavedCompany, flags: RiskFlag[]) {
   if (sensitive && sensitivity && risks.length > 0) {
     sentences.push(
       `Returns also move sharply between the bear and bull cases (${sensitivity.value}).`,
+    );
+  }
+  if (shortRunway) {
+    sentences.push(
+      financingBenchmarkSummarySentence(
+        getFinancingBenchmark({
+          industry: company.profile.industry,
+          investmentAmount: company.financialInputs.investmentAmount,
+          runwayMonths: company.calculatedMetrics.runwayMonths,
+        }),
+      ),
     );
   }
 
@@ -618,6 +636,13 @@ export function buildInvestmentMemo(
   return {
     company,
     executiveSummary: buildExecutiveSummary(company, flags),
+    financingBenchmark: formatFinancingBenchmark(
+      getFinancingBenchmark({
+        industry: company.profile.industry,
+        investmentAmount: company.financialInputs.investmentAmount,
+        runwayMonths: company.calculatedMetrics.runwayMonths,
+      }),
+    ),
     overview: buildOverview(company),
     financial: buildFinancial(company, flags, companies),
     terms: buildTerms(company),

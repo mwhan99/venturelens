@@ -1,8 +1,9 @@
 # VentureLens
 
-**Early-stage startup screening: from raw metrics to a first-pass investment memo in minutes.**
+**Startup screening backed by real data: runway, returns, and risk for any startup, benchmarked against 114,695 funding rounds from SEC Form D filings.**
 
 🔗 **Live demo:** https://venturelens-chi.vercel.app
+Demo companies are simulated (private startups' financials aren't public); the financing benchmarks come from real SEC filings.
 *(Click "Load demo dataset" on the dashboard to explore with 10 simulated startups.)*
 
 ![Dashboard](docs/screenshots/dashboard.png)
@@ -16,6 +17,7 @@ Angel investors, student investment clubs, and junior VC analysts screen dozens 
 - **Assumptions are inconsistent** from one deal to the next, which makes companies hard to compare.
 - **Return math gets separated from risk.** A 10x modeled MOIC means little if the company has 8 months of cash.
 - **Lessons from past failures aren't applied systematically.** Patterns like the ones behind WeWork or Bird show up in screening data long before the outcome.
+- Benchmarks for how long comparable startups take to raise again sit behind paid databases; VentureLens builds them from free public filings.
 
 VentureLens standardizes that first pass: the same inputs, the same scenario logic, and the same risk rules for every company, plus a written memo that states the main strength, the biggest risk, and the key diligence question.
 
@@ -71,7 +73,8 @@ VentureLens financing benchmarks come from public SEC Form D filings. The pipeli
 
 This is a screening prototype, not a valuation model. Being explicit about what it doesn't do:
 
-- **Demo data is simulated.** The 10 demo companies are fictional, so the benchmark medians describe the demo set, not the market.
+- **Demo companies are simulated.** The Dataset Benchmark page compares them to each other, not to the market; the Financing Benchmark uses real SEC Form D data.
+- **Form D benchmarks are a lower bound on fundraising:** SAFEs, notes, and some rounds never appear, and offerings within 90 days are merged, so gaps under 3 months aren't measurable.
 - **Growth is compounded at a constant rate.** Real startups decelerate, so modeled returns at high growth rates are optimistic.
 - **Thresholds are not sector-specific.** A 70% gross margin bar fits SaaS but is too strict for fintech, marketplaces, or hardware.
 - **The case library is small** (5 cases), so matching illustrates a method rather than producing statistically meaningful results.

@@ -67,7 +67,7 @@ export function SaveToVentureLens({ draft }: { draft: SaveDraft }) {
         <button
           type="button"
           onClick={handleSave}
-          className="inline-flex h-10 items-center justify-center rounded-md bg-[#1f8a70] px-4 text-sm font-medium text-white transition-colors hover:bg-[#18735d]"
+          className="inline-flex h-10 items-center justify-center rounded-md bg-brand px-4 text-sm font-medium text-white transition-colors hover:bg-brand-dark"
         >
           Save to VentureLens
         </button>
@@ -94,7 +94,7 @@ export function SaveToVentureLens({ draft }: { draft: SaveDraft }) {
             <button
               type="button"
               onClick={() => persist(pendingReplace.id)}
-              className="inline-flex h-9 items-center rounded-md bg-[#1f8a70] px-3 text-sm font-medium text-white hover:bg-[#18735d]"
+              className="inline-flex h-9 items-center rounded-md bg-brand px-3 text-sm font-medium text-white hover:bg-brand-dark"
             >
               Replace existing
             </button>

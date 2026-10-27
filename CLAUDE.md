@@ -85,13 +85,16 @@ Everything is in `src/`. The `@/` in imports means `src/`.
 
 | File | What it does |
 |---|---|
-| `src/app/layout.tsx` | The frame around every page: IBM Plex Sans/Mono fonts, page title, and `AppShell`. |
-| `src/app/globals.css` | Background and text colours, fonts, and print rules for the memo. |
-| `src/components/AppShell.tsx`, `Sidebar.tsx` | The dark navy left sidebar (menu of 7 pages) and the phone menu button. |
-| `src/components/PageChrome.tsx`, `MetricCard.tsx`, `icons.tsx`, `SimulatedBadge.tsx`, `RecentStartups.tsx` | Shared pieces: page headers, number cards, icons, the "Simulated" label, the recent-startups list. |
-| `src/app/page.tsx` | **Dashboard.** Summary cards and recently saved startups. Empty until the visitor clicks "Load demo dataset". |
+| Design | Chosen in step 5: **"Atlas"**. White rounded cards on a pale lavender background (`#f5f4f8`), Space Grotesk headlines, DM Sans text, violet `brand` (#5b3df5) with coral (#e0552d) and lime (#d7f36b) highlights, one oversized number in the hero. Colours are Tailwind tokens in `src/app/globals.css` (`bg-brand`, `text-muted`, `bg-lime`, `font-display`…); use the tokens, not hex codes. Chart colours passed the colour-blindness validator on white. It deliberately avoids HiddenHire's navy/cobalt/Inter "data briefing" look and Parrot's pink centred hero. The three mockups are in `design-options/` (not committed). |
+| `src/app/layout.tsx` | The frame around every page: DM Sans, Space Grotesk and IBM Plex Mono fonts, page titles (`"%s · VentureLens"`), `SiteHeader` and `SiteFooter`. |
+| `src/app/globals.css` | The Atlas colour and font tokens, and print rules for the memo. |
+| `src/components/SiteHeader.tsx`, `SiteFooter.tsx`, `Logo.tsx`, `src/app/icon.svg` | The top bar (logo, `NAV_LINKS`, a black "Screen a startup" button; on phones the links sit in a scrollable second row), the footer with the data caveat and GitHub links, and the violet-and-coral logo and browser-tab icon. **Only link pages that exist**: Explore, Company lookup and Methodology join `NAV_LINKS` when they are built. |
+| `src/components/PageChrome.tsx`, `MetricCard.tsx`, `SimulatedBadge.tsx` | Shared pieces for the calculator pages: page headers, number cards, the "Simulated" label. These still use the older slate styling until step 9. |
+| `src/app/page.tsx` | **Home.** Hero with the 24-month rate, four stat cards, the "odds of raising again" curve, a working "Try it" picker, key findings, rounds per year, rates by sector, the cleaning funnel, and a link to the calculator. Prebuilt as a static page; every number comes from `src/lib/formd/summary.ts`. |
+| `src/lib/formd/summary.ts` | Reads `summary.json` and `benchmarks.json` for the home page: `getHomeData()`, `getOddsTable()` for the picker, `findings()` (the key-findings sentences, generated from the data so they stay true after a refresh), and number formatting (`pct`, `count`, `money`, `longDate`). |
+| `src/components/charts/Charts.tsx`, `src/components/home/OddsPicker.tsx` | Browser-side ("client") components: hand-drawn SVG `YearBars`, `OddsCurve` and `SectorBars` (no chart library; they measure their width, redraw on resize, show hover tooltips, and include a hidden table for screen readers), and the sector × round-size picker. |
 | `src/app/analyze/page.tsx` + `src/components/analyze/` | **Analyze Startup.** The input form, results, Bear/Base/Bull scenarios, risk flags, the Form D financing benchmark card, and "Save". |
-| `src/app/portfolio/page.tsx`, `portfolio/[id]/page.tsx` + `src/components/portfolio/` | **Portfolio** list and one page per saved company, with historical case matches and the "Load demo dataset" button. |
+| `src/app/portfolio/page.tsx`, `portfolio/[id]/page.tsx` + `src/components/portfolio/` | **Portfolio**: the four summary cards (moved here from the old dashboard), the saved-company list, and one page per saved company with historical case matches and the "Load demo dataset" button. |
 | `src/app/memo/page.tsx` + `components/memo/` | **Investment Memo**, printable to PDF. The text is written by `src/lib/memo/buildMemo.ts`. |
 | `src/app/compare/page.tsx` + `components/compare/` | **Compare Startups** side by side; trade-off sentences come from `src/lib/compare/insights.ts`. |
 | `src/app/benchmark/page.tsx` + `components/benchmark/` | **Dataset Benchmark.** Compares saved companies with the median of the *other saved companies*, which are usually the made-up demo ones. |
@@ -101,17 +104,18 @@ Everything is in `src/`. The `@/` in imports means `src/`.
 | `src/lib/cases/`, `src/data/historical-cases.ts` | Turns risk flags into tags and matches them to 5 sourced failure cases (WeWork, Fast, Airlift, Bird, Theranos). |
 | `src/lib/formd/benchmarks.ts` | Looks up the Form D benchmark for a startup's sector and check size (see section 3b). |
 | `src/data/formd/benchmarks.json` | **Generated** by `pipeline/analyze.py`. The Form D results the site reads (about 54 KB). |
-| `src/data/formd/summary.json` | **Generated** by `pipeline/summarize.py` (about 11 KB). Headline numbers, the cleaning funnel, rounds and median round size per year (with rounds by sector), sectors, amount buckets and the top 10 states. No page reads it yet; the new home page will. |
+| `src/data/formd/summary.json` | **Generated** by `pipeline/summarize.py` (about 11 KB). Headline numbers, the cleaning funnel, rounds and median round size per year (with rounds by sector), sectors, amount buckets and the top 10 states. The home page reads it through `src/lib/formd/summary.ts`. |
 | `src/data/demo-dataset.ts` | The 10 made-up demo startups (NovaPay, CloudCore, MedFlow, …). |
 | `src/data/form-options.ts` | The industry and stage lists in the form. |
 | `src/lib/storage/` | Saves companies in the visitor's browser (`localStorage`, key `venturelens.companies.v1`). Nothing is shared between visitors or devices. |
 | `src/lib/dashboard/summary.ts`, `src/lib/benchmark/dataset.ts` | Numbers for the dashboard cards and the Dataset Benchmark page. |
-| `src/lib/**/*.test.ts`, `vitest.config.mts` | The tests, run with `npm test`. `finance/novapay.test.ts` is the hand-checked NovaPay case (analysis, Bear/Base/Bull, risk flags). `cases/match.test.ts` fixes which historical cases each demo company matches. `formd/benchmarks.test.ts` checks the sector and size mapping, a real lookup (FinTech $1–5M at 16 months = 23% of 949 rounds; update it when the data is refreshed), the 36-month cap and "not measurable" under 3 months. |
+| `src/lib/**/*.test.ts`, `vitest.config.mts` | The tests, run with `npm test`. `finance/novapay.test.ts` is the hand-checked NovaPay case (analysis, Bear/Base/Bull, risk flags). `cases/match.test.ts` fixes which historical cases each demo company matches. `formd/benchmarks.test.ts` checks the sector and size mapping, a real lookup (FinTech $1–5M at 16 months = 23% of 949 rounds; update it when the data is refreshed), the 36-month cap and "not measurable" under 3 months. `formd/summary.test.ts` checks that the home page's numbers and findings come from the generated files. |
 | `next.config.ts` | Turns off the Next.js dev indicator. Nothing else. |
 | `public/*.svg` | Leftover starter images from create-next-app. Unused. |
 
-All calculation runs **in the visitor's browser**. There is no server code
-and no database today.
+The calculator runs **in the visitor's browser**. The home page is built
+once from the generated JSON files. There is no server code and no database
+today.
 
 ### The data pipeline (Python, `pipeline/`)
 
@@ -332,6 +336,10 @@ All of these read generated files, so they are prebuilt and load instantly.
 6. **New layout and home page.** Swap the sidebar for the chosen design's
    navigation and build `/`. *Check:* every number on the page matches
    `summary.json`/`benchmarks.json`; the page looks right at phone width.
+   *(Done: Atlas header and footer on every page, the new home page with a
+   working sector × size picker, and the old dashboard cards moved to
+   Portfolio. Charts are hand-drawn SVG, so no chart library is needed in
+   step 7.)*
 7. **Fundraising odds explorer** (`/explore`). Charts are hand-drawn SVG or a
    small chart library, decided in step 5. *Check:* for Technology, all
    sizes, the 24-month number reads 37.6%; "under 3 months: not measurable"

@@ -287,7 +287,7 @@ export function AnalyzeStartupForm() {
       <div className="rounded-lg border border-slate-200 bg-white px-5 py-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:px-6">
         <button
           type="submit"
-          className="inline-flex h-12 w-full items-center justify-center rounded-md bg-[#1f8a70] px-6 text-base font-semibold text-white transition-colors hover:bg-[#18735d]"
+          className="inline-flex h-12 w-full items-center justify-center rounded-md bg-brand px-6 text-base font-semibold text-white transition-colors hover:bg-brand-dark"
         >
           Analyze Startup
         </button>

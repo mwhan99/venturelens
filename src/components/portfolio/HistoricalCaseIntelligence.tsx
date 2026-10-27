@@ -13,7 +13,7 @@ function SourceLink({ historicalCase }: { historicalCase: HistoricalCase }) {
         href={historicalCase.sourceUrl}
         target="_blank"
         rel="noreferrer"
-        className="text-sm font-medium text-[#1f8a70] hover:text-[#18735d] hover:underline"
+        className="text-sm font-medium text-brand hover:text-brand-dark hover:underline"
       >
         {historicalCase.sourceLabel}
       </a>

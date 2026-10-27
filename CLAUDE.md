@@ -147,8 +147,8 @@ pipeline is **run by hand**; nothing refreshes it automatically.
 
 | File | What it does |
 |---|---|
-| `README.md` | The public write-up: problem, features, formulas, data, limitations. |
-| `docs/screenshots/`, `docs/charts/` | README images. |
+| `README.md` | The public write-up (step 14): the findings first, then the site's pages, how the data is built and validated, the calculator, limitations, tech stack, how to run it, and the roadmap. Its numbers are typed by hand, so **update them after a data refresh**. |
+| `docs/screenshots/`, `docs/charts/` | README images. The screenshots (`home.png`, `explore.png`, `memo.png`) were taken from the live site with headless Chrome at 1280px wide, e.g. `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --hide-scrollbars --window-size=1280,1700 --virtual-time-budget=8000 --screenshot=home.png https://venturelens-chi.vercel.app/`, then cropped. The charts come from `analyze.py`. |
 | `VentureLens_MVP.xlsx` | The original Excel model the app grew from (sheets: Startup_Input, Calculated Metrics, Scenario_Analysis, Risk_Flags, Compare_Startups, Benchmark). Not in git. |
 | `.tools/` | A private copy of Node 22, git-ignored. The Mac's normal Node (v24, `/usr/local/bin/node`) is what's used. |
 | `.gitignore` | Ignores caches, `.env*`, `node_modules`, the pipeline's raw and processed data, and `AGENTS.md`. |
@@ -395,11 +395,18 @@ setup.
 13. **Polish.** Link previews (an Open Graph image), sitemap, page titles,
     loading and error states, and a phone check. *Check:* test on a real
     phone; paste the link into LinkedIn or iMessage and see the preview.
-    *(Built: three preview cards, sitemap, robots.txt, 404, error and
-    loading pages. The real-phone and LinkedIn checks are Meng's.)*
+    *(Done, Oct 27, 2026: three preview cards, sitemap, robots.txt, 404,
+    error and loading pages, all live. Checked as LinkedIn's crawler sees
+    the pages: every page has a title, description, 1200×630 image at a
+    full https address, and the large-card setting. Viewing the card in
+    LinkedIn itself and opening the site on a real phone are Meng's.)*
 14. **Switch the story over.** Rewrite the README around the data, refresh
     the screenshots, and update the one-line description Meng uses on the
     résumé and LinkedIn. *Check:* the README's numbers match the live site.
+    *(Done, Oct 27, 2026: the README leads with the findings; new
+    screenshots of the live home, explorer and memo pages, taken with
+    headless Chrome. Three résumé-line drafts are in pull request #10 for
+    Meng to choose from.)*
 
 ### Decisions (approved by Meng, Oct 26, 2026)
 

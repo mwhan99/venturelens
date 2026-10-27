@@ -92,7 +92,8 @@ Everything is in `src/`. The `@/` in imports means `src/`.
 | `src/components/PageChrome.tsx`, `MetricCard.tsx`, `SimulatedBadge.tsx` | Shared pieces for the calculator pages: page headers, number cards, the "Simulated" label. These still use the older slate styling until step 9. |
 | `src/app/page.tsx` | **Home.** Hero with the 24-month rate, four stat cards, the "odds of raising again" curve, a working "Try it" picker, key findings, rounds per year, rates by sector, the cleaning funnel, and a link to the calculator. Prebuilt as a static page; every number comes from `src/lib/formd/summary.ts`. |
 | `src/lib/formd/summary.ts` | Reads `summary.json` and `benchmarks.json` for the home page: `getHomeData()`, `getOddsTable()` for the picker, `findings()` (the key-findings sentences, generated from the data so they stay true after a refresh), and number formatting (`pct`, `count`, `money`, `longDate`). |
-| `src/components/charts/Charts.tsx`, `src/components/home/OddsPicker.tsx` | Browser-side ("client") components: hand-drawn SVG `YearBars`, `OddsCurve` and `SectorBars` (no chart library; they measure their width, redraw on resize, show hover tooltips, and include a hidden table for screen readers), and the sector × round-size picker. |
+| `src/components/charts/Charts.tsx`, `src/components/home/OddsPicker.tsx` | Browser-side ("client") components: hand-drawn SVG `YearBars`, `OddsCurve` (one or two curves) and `SectorBars` (no chart library; they measure their width, redraw on resize, show hover tooltips, and include a hidden table for screen readers), and the home page's sector × round-size picker with an "Open in the explorer" link. |
+| `src/app/explore/page.tsx`, `src/components/explore/Explorer.tsx`, `src/lib/formd/explorer.ts` | **Fundraising odds explorer** (`/explore`). Pick a sector, then a round size *or* a stage (picking one clears the other). Shows the 24-month rate against all startups, months 6/12/18/24/36, the typical gap, the sample size, and the curve. The choice is kept in the address (`?sector=fintech&size=1-5m`, `?sector=all&stage=3-plus`), so every view is a shareable link; unknown values fall back to Technology. The page is prebuilt; the part that reads the address sits inside `<Suspense>` (this Next.js version requires it for `useSearchParams`). `explorer.ts` turns `benchmarks.json` into the 56 groups the page can show. |
 | `src/app/analyze/page.tsx` + `src/components/analyze/` | **Analyze Startup.** The input form, results, Bear/Base/Bull scenarios, risk flags, the Form D financing benchmark card, and "Save". |
 | `src/app/portfolio/page.tsx`, `portfolio/[id]/page.tsx` + `src/components/portfolio/` | **Portfolio**: the four summary cards (moved here from the old dashboard), the saved-company list, and one page per saved company with historical case matches and the "Load demo dataset" button. |
 | `src/app/memo/page.tsx` + `components/memo/` | **Investment Memo**, printable to PDF. The text is written by `src/lib/memo/buildMemo.ts`. |
@@ -245,8 +246,11 @@ aliases.
   must say "under 3 months: not measurable" (`min_gap_months: 3`).
 - **Conditional median**: among rounds that *were* followed by another
   filing, the typical gap (about 14 months in every sector).
-- Results are split by sector, by sector × amount bucket (`<$1M`, `$1–5M`,
-  `$5–20M`, `$20M+`) and by sector × stage (observed round 1, 2, 3+).
+- Results are split by sector, by amount bucket (`<$1M`, `$1–5M`,
+  `$5–20M`, `$20M+`), by stage (observed round 1, 2, 3+), and by sector ×
+  bucket and sector × stage (`by_sector`, `by_amount_bucket`, `by_stage`,
+  `by_sector_and_amount_bucket`, `by_sector_and_stage` in `benchmarks.json`).
+  Size and stage are never combined, so the explorer lets you pick one.
   Groups with fewer than 100 rounds are marked insufficient, and the site
   falls back to the sector number.
 - In the calculator, a startup's industry is mapped to a sector, its
@@ -343,7 +347,10 @@ All of these read generated files, so they are prebuilt and load instantly.
 7. **Fundraising odds explorer** (`/explore`). Charts are hand-drawn SVG or a
    small chart library, decided in step 5. *Check:* for Technology, all
    sizes, the 24-month number reads 37.6%; "under 3 months: not measurable"
-   appears where it should.
+   appears where it should. *(Done: sector × size or stage, all from
+   `benchmarks.json`; `analyze.py` now also writes all-sector size and stage
+   curves. The choice lives in the address, e.g.
+   `/explore?sector=fintech&size=1-5m`, so every view is a shareable link.)*
 8. **Methodology page** (`/methodology`). *Check:* Meng reads it and it's
    accurate and easy to follow.
 9. **Move the calculator to `/screen`.** Regroup Analyze, Portfolio, Memo and

@@ -37,7 +37,7 @@ python pipeline/summarize.py
 
 `build_dataset.py` reads those folders only. Run the download first. Re-running the build overwrites the outputs below. It also writes `funnel.json`, the company and row counts at each cleaning step, which is the same table as the Funnel section of the quality report.
 
-`analyze.py` reads `venture_rounds.parquet` and fits Kaplan–Meier curves for time until the next round. It writes summary benchmarks to `src/data/formd/benchmarks.json` and charts to `docs/charts/`. It does not change the web app. The write-up of those results is `pipeline/FINDINGS.md`.
+`analyze.py` reads `venture_rounds.parquet` and fits Kaplan–Meier curves for time until the next round. It writes summary benchmarks to `src/data/formd/benchmarks.json` (overall; by sector; by round size and by stage across all sectors; and by sector × size and sector × stage) and charts to `docs/charts/`. It does not change the web app. The write-up of those results is `pipeline/FINDINGS.md`.
 
 `summarize.py` reads `venture_rounds.parquet`, `funnel.json`, and the dataset end date in `benchmarks.json`, so it runs last. It writes `src/data/formd/summary.json` for the website: headline counts, the funnel, rounds and median round size per year (the year that contains the end date is marked partial), rounds by sector, amount bucket, and the top 10 states. It reports medians and counts only, never dollar totals, because a few self-reported amounts (one filing claims $48 billion from a single investor) would dominate any sum.
 

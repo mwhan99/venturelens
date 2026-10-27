@@ -44,9 +44,9 @@ export default function HomePage() {
             to see who came back for more money, and when.
           </p>
           <div className="mt-6 flex flex-wrap gap-2.5">
-            <a href="#odds" className="rounded-full bg-brand px-5 py-3 font-bold text-white transition-colors hover:bg-brand-dark">
-              See the odds
-            </a>
+            <Link href="/explore" className="rounded-full bg-brand px-5 py-3 font-bold text-white transition-colors hover:bg-brand-dark">
+              Explore the odds
+            </Link>
             <Link href="/analyze" className="rounded-full bg-brand-soft px-5 py-3 font-bold text-brand transition-colors hover:bg-[#ddd5ff]">
               Screen a startup
             </Link>
@@ -87,7 +87,13 @@ export default function HomePage() {
             <span><i className="mr-1.5 inline-block h-1 w-4 rounded-sm bg-brand align-middle" />Technology</span>
             <span><i className="mr-1.5 inline-block h-1 w-4 rounded-sm bg-coral align-middle" />All startups</span>
           </div>
-          <OddsCurve technology={data.technologyCurve} overall={data.overall.curve} minGap={data.minGap} />
+          <OddsCurve
+            series={[
+              { label: "Technology", values: data.technologyCurve },
+              { label: "All startups", values: data.overall.curve },
+            ]}
+            minGap={data.minGap}
+          />
         </Card>
         <section className="min-w-0 rounded-[18px] bg-ink p-6 text-white sm:rounded-[22px] sm:p-7">
           <h2 className="font-display text-2xl font-bold tracking-[-0.03em]">Try it</h2>

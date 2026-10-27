@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+import { SECTORS, SIZES as EXPLORER_SIZES, toQuery } from "@/lib/formd/explorer";
 import { AMOUNT_BUCKETS, count, pct, type OddsTable } from "@/lib/formd/summary";
 
 const SIZES = ["All sizes", ...AMOUNT_BUCKETS] as const;
@@ -71,6 +73,16 @@ export function OddsPicker({ table }: { table: OddsTable }) {
           <p className="mt-6 text-white">Too few rounds to measure this combination.</p>
         )}
       </div>
+      <Link
+        href={`/explore?${toQuery({
+          sector: SECTORS.find((s) => s.key === sector)?.slug ?? "all",
+          size: EXPLORER_SIZES.find((s) => s.key === size)?.slug ?? null,
+          stage: null,
+        })}`}
+        className="mt-5 inline-block text-sm font-bold text-lime hover:underline"
+      >
+        Open in the explorer →
+      </Link>
     </div>
   );
 }

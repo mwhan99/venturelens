@@ -224,12 +224,35 @@ def analyze(rounds: pd.DataFrame) -> dict[str, object]:
                     fallback="sector",
                 )
             )
+    # All sectors together, split one way at a time, for the website's explorer.
+    by_amount_all = [
+        segment_record(
+            rounds.loc[rounds["amount_bucket"].eq(bucket)],
+            venture_sector=None,
+            amount_bucket=bucket,
+            stage=None,
+            fallback="overall",
+        )
+        for bucket in BUCKET_ORDER
+    ]
+    by_stage_all = [
+        segment_record(
+            rounds.loc[rounds["stage"].eq(stage)],
+            venture_sector=None,
+            amount_bucket=None,
+            stage=stage,
+            fallback="overall",
+        )
+        for stage in STAGE_ORDER
+    ]
     unexpected = sorted(set(rounds["venture_sector"].dropna().unique()) - set(SECTOR_ORDER))
     if unexpected:
         print(f"warning: sectors not in the mapping were left out of the benchmarks: {', '.join(unexpected)}")
     return {
         "overall": overall,
         "by_sector": by_sector,
+        "by_amount_bucket": by_amount_all,
+        "by_stage": by_stage_all,
         "by_sector_and_amount_bucket": by_amount,
         "by_sector_and_stage": by_stage,
     }

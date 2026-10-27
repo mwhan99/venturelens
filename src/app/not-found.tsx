@@ -6,6 +6,7 @@ export const metadata: Metadata = { title: "Page not found" };
 const LINKS = [
   { href: "/", label: "Home", text: "How often do startups raise again?" },
   { href: "/explore", label: "Explore odds", text: "Pick a sector, round size or stage." },
+  { href: "/companies", label: "Company lookup", text: "Any Form D filer, and why it is or isn’t counted." },
   { href: "/screen", label: "Screen a startup", text: "Runway, returns and risk in one form." },
   { href: "/methodology", label: "Methodology", text: "How the numbers are made." },
 ] as const;

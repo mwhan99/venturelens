@@ -26,6 +26,7 @@ Paid databases like PitchBook sell this kind of benchmark. VentureLens builds it
 |---|---|
 | **[Home](https://venturelens-chi.vercel.app)** | The story in numbers: the odds curve, a sector and round-size picker, key findings written from the data, rounds per year, and the cleaning funnel |
 | **[Explore odds](https://venturelens-chi.vercel.app/explore)** | Pick a sector, then a round size or a stage, and see the chance of another filing by month 6, 12, 18, 24 and 36 against all startups. Every view is a shareable link |
+| **[Company lookup](https://venturelens-chi.vercel.app/companies)** | Search any of the 166,601 US companies that filed a Form D, by legal or brand name and forgiving typos (“Instacart” finds Maplebear Inc.), and see every round it reported and whether it's counted in the benchmark, and if not, why |
 | **[Methodology](https://venturelens-chi.vercel.app/methodology)** | How filings become rounds, how “raising again” is measured, the validation check, and the limitations, in plain English |
 | **[Screen a startup](https://venturelens-chi.vercel.app/screen)** | A calculator for one startup: runway, ownership, MOIC, IRR, Bear/Base/Bull cases, risk flags, and how often comparable rounds raised again within its runway. Save companies to compare them or write a printable memo |
 
@@ -83,7 +84,7 @@ The 10 demo companies load automatically on a first visit and are **simulated**,
 
 ## Tech stack
 
-Python (pandas, lifelines, pytest) for the data pipeline · Next.js 16, React 19, TypeScript and Tailwind CSS 4 for the site · hand-drawn SVG charts · Vitest · Vercel. Every page is prebuilt from two generated JSON files, so it loads instantly and no number is typed in by hand.
+Python (pandas, lifelines, pytest) for the data pipeline · Next.js 16, React 19, TypeScript and Tailwind CSS 4 for the site · hand-drawn SVG charts · Vitest · Vercel · Supabase (Postgres with trigram search) for the company lookup. The data pages are prebuilt from two generated JSON files, so they load instantly; the lookup reads Supabase with a read-only key, cached for an hour. No number is typed in by hand.
 
 ## Run locally
 
@@ -96,7 +97,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000. Run the tests with `npm test`.
+Open http://localhost:3000. Run the tests with `npm test`. The company lookup also needs `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` in a `.env.local` file; everything else works without them.
 
 **The data pipeline** (Python 3.11 or newer; the raw data is about 1.2 GB once unzipped):
 
@@ -116,7 +117,6 @@ Details are in [pipeline/README.md](pipeline/README.md).
 
 ## Roadmap
 
-- **Company lookup:** search any of the 166,601 Form D filers and see its rounds, and why it is or isn't in the benchmark
 - **Quarterly refresh:** a scheduled job that rebuilds the data when the SEC posts a new quarter
 - Sector-specific risk thresholds, and a growth-decay model instead of constant compounding
 

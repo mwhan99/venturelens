@@ -12,4 +12,4 @@ export const SITE_NAME = "VentureLens";
 export const REPO_URL = "https://github.com/mwhan99/venturelens";
 
 /** Every page worth listing in the sitemap. */
-export const PUBLIC_PATHS = ["/", "/explore", "/methodology", "/screen", "/screen/portfolio", "/screen/compare", "/screen/memo"] as const;
+export const PUBLIC_PATHS = ["/", "/explore", "/companies", "/methodology", "/screen", "/screen/portfolio", "/screen/compare", "/screen/memo"] as const;

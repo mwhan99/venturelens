@@ -4,10 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/Logo";
 
-// Only pages that exist go here. Company lookup is added when it is built
-// (rebuild plan step 11). The calculator's own pages are tabs inside /screen.
+// Only pages that exist go here. The calculator's own pages are tabs inside /screen.
 export const NAV_LINKS = [
   { href: "/explore", label: "Explore odds" },
+  { href: "/companies", label: "Companies" },
   { href: "/methodology", label: "Methodology" },
 ] as const;
 

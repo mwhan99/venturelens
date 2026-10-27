@@ -151,9 +151,14 @@ export default function HomePage() {
               </li>
             ))}
           </ol>
-          <Link className="mt-4 inline-block text-sm font-semibold text-brand hover:underline" href="/methodology#funnel">
-            How each step works →
-          </Link>
+          <p className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm font-semibold">
+            <Link className="text-brand hover:underline" href="/companies">
+              Look up any company →
+            </Link>
+            <Link className="text-brand hover:underline" href="/methodology#funnel">
+              How each step works →
+            </Link>
+          </p>
         </Card>
       </div>
 

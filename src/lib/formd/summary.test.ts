@@ -56,6 +56,8 @@ describe("formatting", () => {
     expect(money(1_400_000)).toBe("$1.4M");
     expect(money(2_000_000)).toBe("$2M");
     expect(money(950_000)).toBe("$950,000");
+    expect(money(8_589_661_278)).toBe("$8.59B");
+    expect(money(415_749_740)).toBe("$415.75M");
     expect(pct(0.328)).toBe("32.8%");
     expect(longDate("2026-09-30")).toBe("September 30, 2026");
   });

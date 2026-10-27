@@ -322,7 +322,7 @@ export default function MethodologyPage() {
 
           <Section id="calculator">
             <p>
-              The <Link href="/analyze" className="font-semibold text-brand hover:underline">screening calculator</Link> applies standard
+              The <Link href="/screen" className="font-semibold text-brand hover:underline">screening calculator</Link> applies standard
               first-pass formulas to one startup’s numbers. It doesn’t predict outcomes.
             </p>
             <ul className="grid gap-2 font-mono text-[14px]">

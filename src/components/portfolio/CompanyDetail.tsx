@@ -77,7 +77,7 @@ export function CompanyDetail({ id }: { id: string }) {
           This record is not in the local VentureLens portfolio.
         </p>
         <Link
-          href="/portfolio"
+          href="/screen/portfolio"
           className="mt-5 inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-medium text-white hover:bg-brand-dark"
         >
           Back to Portfolio
@@ -91,7 +91,7 @@ export function CompanyDetail({ id }: { id: string }) {
 
   function handleDelete() {
     deleteSavedCompany(companyId);
-    router.push("/portfolio");
+    router.push("/screen/portfolio");
   }
 
   return (
@@ -99,7 +99,7 @@ export function CompanyDetail({ id }: { id: string }) {
       <div className="flex flex-col gap-4 border-b border-slate-200 pb-8 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
           <Link
-            href="/portfolio"
+            href="/screen/portfolio"
             className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500 hover:text-slate-700"
           >
             Portfolio

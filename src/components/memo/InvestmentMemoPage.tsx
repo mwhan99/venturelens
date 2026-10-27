@@ -241,7 +241,7 @@ export function InvestmentMemoPage() {
             <p className="mt-3 text-sm leading-7 text-slate-700">
               {memo.scenarios.narrative}
             </p>
-            <div className="mt-4 min-w-0 max-w-full overflow-x-auto">
+            <div className="relative mt-4 min-w-0 max-w-full overflow-x-auto">
               <table className="min-w-full text-left text-sm">
                 <thead className="text-[11px] uppercase tracking-[0.12em] text-slate-500">
                   <tr>

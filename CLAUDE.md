@@ -35,8 +35,9 @@ Numbers below were checked against the data on Oct 26, 2026.
   on applications.
   - Work on a branch and merge with a pull request that Meng merges. After
     each merge, open https://venturelens-chi.vercel.app and check it loads.
-  - Old addresses (`/analyze`, `/portfolio`, `/memo`, `/compare`, …) must
-    keep working. If a page moves, add a redirect.
+  - Old addresses must keep working. If a page moves, add it to
+    `LEGACY_REDIRECTS` in `next.config.ts` (`src/app/screen/screen.test.ts`
+    checks every redirect lands on a page that exists).
 - **This Next.js version (16.3.6) differs from older ones.** Read the
   matching guide in `node_modules/next/dist/docs/` before writing Next.js
   code.
@@ -88,20 +89,20 @@ Everything is in `src/`. The `@/` in imports means `src/`.
 | Design | Chosen in step 5: **"Atlas"**. White rounded cards on a pale lavender background (`#f5f4f8`), Space Grotesk headlines, DM Sans text, violet `brand` (#5b3df5) with coral (#e0552d) and lime (#d7f36b) highlights, one oversized number in the hero. Colours are Tailwind tokens in `src/app/globals.css` (`bg-brand`, `text-muted`, `bg-lime`, `font-display`…); use the tokens, not hex codes. Chart colours passed the colour-blindness validator on white. It deliberately avoids HiddenHire's navy/cobalt/Inter "data briefing" look and Parrot's pink centred hero. The three mockups are in `design-options/` (not committed). |
 | `src/app/layout.tsx` | The frame around every page: DM Sans, Space Grotesk and IBM Plex Mono fonts, page titles (`"%s · VentureLens"`), `SiteHeader` and `SiteFooter`. |
 | `src/app/globals.css` | The Atlas colour and font tokens, and print rules for the memo. |
-| `src/components/SiteHeader.tsx`, `SiteFooter.tsx`, `Logo.tsx`, `src/app/icon.svg` | The top bar (logo, `NAV_LINKS`, a black "Screen a startup" button; on phones the links sit in a scrollable second row), the footer with the data caveat and GitHub links, and the violet-and-coral logo and browser-tab icon. **Only link pages that exist**: Explore, Company lookup and Methodology join `NAV_LINKS` when they are built. |
-| `src/components/PageChrome.tsx`, `MetricCard.tsx`, `SimulatedBadge.tsx` | Shared pieces for the calculator pages: page headers, number cards, the "Simulated" label. These still use the older slate styling until step 9. |
+| `src/components/SiteHeader.tsx`, `SiteFooter.tsx`, `Logo.tsx`, `src/app/icon.svg` | The top bar (logo, `NAV_LINKS` = Explore odds and Methodology, and a "Screen a startup" button that turns violet inside `/screen`; on phones the links sit in a scrollable second row), the footer with the data caveat and Methodology/Findings/GitHub links, and the violet-and-coral logo and browser-tab icon. **Only link pages that exist**: Company lookup joins `NAV_LINKS` when it is built. A sideways-scrolling box needs `relative`, or a screen-reader label inside it can stretch the page on phones. |
+| `src/components/PageChrome.tsx`, `MetricCard.tsx`, `SimulatedBadge.tsx` | Shared pieces for the calculator pages: the Atlas page header card (lime label, Space Grotesk title), `cardClass`, the empty state, number cards, the "Simulated" label. Inner tables and forms still use some slate greys. |
 | `src/app/page.tsx` | **Home.** Hero with the 24-month rate, four stat cards, the "odds of raising again" curve, a working "Try it" picker, key findings, rounds per year, rates by sector, the cleaning funnel, and a link to the calculator. Prebuilt as a static page; every number comes from `src/lib/formd/summary.ts`. |
 | `src/lib/formd/summary.ts` | Reads `summary.json` and `benchmarks.json` for the home page: `getHomeData()`, `getOddsTable()` for the picker, `findings()` (the key-findings sentences, generated from the data so they stay true after a refresh), and number formatting (`pct`, `count`, `money`, `longDate`). |
 | `src/components/charts/Charts.tsx`, `src/components/home/OddsPicker.tsx` | Browser-side ("client") components: hand-drawn SVG `YearBars`, `OddsCurve` (one or two curves) and `SectorBars` (no chart library; they measure their width, redraw on resize, show hover tooltips, and include a hidden table for screen readers), and the home page's sector × round-size picker with an "Open in the explorer" link. |
 | `src/app/explore/page.tsx`, `src/components/explore/Explorer.tsx`, `src/lib/formd/explorer.ts` | **Fundraising odds explorer** (`/explore`). Pick a sector, then a round size *or* a stage (picking one clears the other). Shows the 24-month rate against all startups, months 6/12/18/24/36, the typical gap, the sample size, and the curve. The choice is kept in the address (`?sector=fintech&size=1-5m`, `?sector=all&stage=3-plus`), so every view is a shareable link; unknown values fall back to Technology. The page is prebuilt; the part that reads the address sits inside `<Suspense>` (this Next.js version requires it for `useSearchParams`). `explorer.ts` turns `benchmarks.json` into the 56 groups the page can show. |
 | `src/app/methodology/page.tsx` | **Methodology** (`/methodology`), in plain English with a sticky table of contents on wide screens: in short, what Form D is, the cleaning funnel (each step explained, with the likely-startup exclusion counts), what counts as a round, how “raising again” is measured (Kaplan–Meier, typical gap, the 3-month floor, the 100-round minimum), the validation table, limitations, the calculator’s formulas, and how it’s built. Rule settings and counts come from `summary.json` (`rules`, `exclusions`, `funnel`); the wording is hand-written, so **if a cleaning rule changes, update this page with DECISIONS.md**. |
 | `src/data/validation.ts` | The step 4 validation table (10 companies, 59 of 82 reported rounds found), hand-researched, sorted from most to least complete. Keep it in step with the table in `pipeline/FINDINGS.md`. |
-| `src/app/analyze/page.tsx` + `src/components/analyze/` | **Analyze Startup.** The input form, results, Bear/Base/Bull scenarios, risk flags, the Form D financing benchmark card, and "Save". |
-| `src/app/portfolio/page.tsx`, `portfolio/[id]/page.tsx` + `src/components/portfolio/` | **Portfolio**: the four summary cards (moved here from the old dashboard), the saved-company list, and one page per saved company with historical case matches and the "Load demo dataset" button. |
-| `src/app/memo/page.tsx` + `components/memo/` | **Investment Memo**, printable to PDF. The text is written by `src/lib/memo/buildMemo.ts`. |
-| `src/app/compare/page.tsx` + `components/compare/` | **Compare Startups** side by side; trade-off sentences come from `src/lib/compare/insights.ts`. |
-| `src/app/benchmark/page.tsx` + `components/benchmark/` | **Dataset Benchmark.** Compares saved companies with the median of the *other saved companies*, which are usually the made-up demo ones. |
-| `src/app/cases/page.tsx` | **Historical Cases.** Just a message pointing to Portfolio; the matching itself shows on company pages. |
+| `src/app/screen/layout.tsx`, `src/components/screen/ScreenTabs.tsx`, `DemoSeeder.tsx` | **The screening calculator section** (`/screen`, step 9). Tabs: Analyze · Portfolio · Compare · Memo, and a note that demo companies are simulated. `DemoSeeder` loads the 10 demo companies on a visitor's **first** visit (flag `venturelens.demoSeeded.v1` in the browser), so no page starts empty; someone who deletes them doesn't get them back. Page titles read “Portfolio · Screen a startup · VentureLens”. |
+| `src/app/screen/page.tsx` + `src/components/analyze/` | **Analyze** (`/screen`). The input form, results, Bear/Base/Bull scenarios, risk flags, the Form D financing benchmark card, and "Save". |
+| `src/app/screen/portfolio/page.tsx`, `screen/portfolio/[id]/page.tsx` + `src/components/portfolio/` | **Portfolio**: the four summary cards, the saved-company list, the "Load demo dataset" button, and one page per saved company with its historical case matches. |
+| `src/app/screen/memo/page.tsx` + `components/memo/` | **Investment Memo**, printable to PDF. The text is written by `src/lib/memo/buildMemo.ts`, including a comparison with the rest of the saved portfolio. |
+| `src/app/screen/compare/page.tsx` + `components/compare/` | **Compare Startups** side by side; trade-off sentences come from `src/lib/compare/insights.ts`. |
+| `next.config.ts` | Turns off the Next.js dev indicator, and `LEGACY_REDIRECTS`: permanent redirects from the pre-step-9 addresses (`/analyze` → `/screen`, `/portfolio[/id]`, `/compare`, `/memo` → under `/screen`; the removed `/benchmark` → `/screen/compare` and `/cases` → `/screen/portfolio`). Query strings pass through. |
 | `src/lib/finance/engine.ts` | The core math (see section 3a). |
 | `src/lib/finance/scenarios.ts`, `risk.ts`, `parse.ts`, `format.ts` | Bear/Base/Bull rules, risk-flag thresholds, reading typed numbers, number display. |
 | `src/lib/cases/`, `src/data/historical-cases.ts` | Turns risk flags into tags and matches them to 5 sourced failure cases (WeWork, Fast, Airlift, Bird, Theranos). |
@@ -111,9 +112,8 @@ Everything is in `src/`. The `@/` in imports means `src/`.
 | `src/data/demo-dataset.ts` | The 10 made-up demo startups (NovaPay, CloudCore, MedFlow, …). |
 | `src/data/form-options.ts` | The industry and stage lists in the form. |
 | `src/lib/storage/` | Saves companies in the visitor's browser (`localStorage`, key `venturelens.companies.v1`). Nothing is shared between visitors or devices. |
-| `src/lib/dashboard/summary.ts`, `src/lib/benchmark/dataset.ts` | Numbers for the dashboard cards and the Dataset Benchmark page. |
+| `src/lib/dashboard/summary.ts`, `src/lib/benchmark/dataset.ts` | Numbers for the Portfolio summary cards, and the memo's comparison of one company with the rest of the saved portfolio (the old Dataset Benchmark page was removed in step 9). |
 | `src/lib/**/*.test.ts`, `vitest.config.mts` | The tests, run with `npm test`. `finance/novapay.test.ts` is the hand-checked NovaPay case (analysis, Bear/Base/Bull, risk flags). `cases/match.test.ts` fixes which historical cases each demo company matches. `formd/benchmarks.test.ts` checks the sector and size mapping, a real lookup (FinTech $1–5M at 16 months = 23% of 949 rounds; update it when the data is refreshed), the 36-month cap and "not measurable" under 3 months. `formd/summary.test.ts` checks that the home page's numbers and findings come from the generated files. |
-| `next.config.ts` | Turns off the Next.js dev indicator. Nothing else. |
 | `public/*.svg` | Leftover starter images from create-next-app. Unused. |
 
 The calculator runs **in the visitor's browser**. The home page is built
@@ -360,7 +360,10 @@ All of these read generated files, so they are prebuilt and load instantly.
    Compare under it. Load the demo companies on first visit. Remove the two
    weak pages. Add redirects from the old addresses. *Check:* `npm test`
    still passes; every old address lands on a working page; a fresh private
-   window never shows an empty dashboard.
+   window never shows an empty dashboard. *(Done: the four pages live under
+   `/screen` with tabs; Dataset Benchmark and the empty Historical Cases page
+   are gone; seven permanent redirects; demo companies load on first visit.
+   Also fixed a phone-width bug where the portfolio table stretched the page.)*
 
 **Phase D — company lookup (needs a database)**
 

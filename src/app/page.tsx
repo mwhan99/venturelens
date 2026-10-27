@@ -45,7 +45,7 @@ export default function HomePage() {
             <Link href="/explore" className="rounded-full bg-brand px-5 py-3 font-bold text-white transition-colors hover:bg-brand-dark">
               Explore the odds
             </Link>
-            <Link href="/analyze" className="rounded-full bg-brand-soft px-5 py-3 font-bold text-brand transition-colors hover:bg-[#ddd5ff]">
+            <Link href="/screen" className="rounded-full bg-brand-soft px-5 py-3 font-bold text-brand transition-colors hover:bg-[#ddd5ff]">
               Screen a startup
             </Link>
           </div>
@@ -165,7 +165,7 @@ export default function HomePage() {
             and see how its runway compares with these benchmarks.
           </p>
         </div>
-        <Link href="/analyze" className="shrink-0 rounded-full bg-ink px-5 py-3 font-bold text-white transition-colors hover:bg-brand">
+        <Link href="/screen" className="shrink-0 rounded-full bg-ink px-5 py-3 font-bold text-white transition-colors hover:bg-brand">
           Screen a startup →
         </Link>
       </section>

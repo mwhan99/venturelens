@@ -4,7 +4,7 @@
 
 🔗 **Live demo:** https://venturelens-chi.vercel.app
 Demo companies are simulated (private startups' financials aren't public); the financing benchmarks come from real SEC filings.
-*(Click "Load demo dataset" on the dashboard to explore with 10 simulated startups.)*
+*(Open **Screen a startup**: 10 simulated demo startups load automatically on your first visit.)*
 
 ![Dashboard](docs/screenshots/dashboard.png)
 
@@ -31,8 +31,8 @@ VentureLens standardizes that first pass: the same inputs, the same scenario log
 | **Financing Benchmark** | SEC Form D rates for how often comparable rounds were followed by another filing within the company's runway |
 | **Investment Memo** | A structured screening memo with an auto-generated executive summary; printable to PDF |
 | **Compare Startups** | Side-by-side metrics plus insights that flag trade-offs (e.g., higher MOIC but lower IRR due to a longer horizon) |
-| **Dataset Benchmark** | Each company's metrics against the median of the saved portfolio |
-| **Historical Cases** | Matches a company's risk pattern to sourced failure cases (WeWork, Bird, Fast, Airlift) and surfaces diligence questions |
+| **Fundraising Odds Explorer** | Pick a sector and a round size or stage, and see how often rounds were followed by another Form D filing, month by month, as a shareable link |
+| **Historical Cases** | On each saved company's page: matches its risk pattern to sourced failure cases (WeWork, Bird, Fast, Airlift) and surfaces diligence questions |
 
 ![Investment memo](docs/screenshots/memo.png)
 ![Historical case matching](docs/screenshots/historical-cases.png)
@@ -73,7 +73,7 @@ VentureLens financing benchmarks come from public SEC Form D filings. The pipeli
 
 This is a screening prototype, not a valuation model. Being explicit about what it doesn't do:
 
-- **Demo companies are simulated.** The Dataset Benchmark page compares them to each other, not to the market; the Financing Benchmark uses real SEC Form D data.
+- **Demo companies are simulated.** The memo's portfolio comparison ranks them against each other, not the market; the Financing Benchmark uses real SEC Form D data.
 - **Form D benchmarks are a lower bound on fundraising:** SAFEs, notes, and some rounds never appear, and offerings within 90 days are merged, so gaps under 3 months aren't measurable.
 - **Growth is compounded at a constant rate.** Real startups decelerate, so modeled returns at high growth rates are optimistic.
 - **Thresholds are not sector-specific.** A 70% gross margin bar fits SaaS but is too strict for fintech, marketplaces, or hardware.

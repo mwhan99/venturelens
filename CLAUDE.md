@@ -49,9 +49,16 @@ Numbers below were checked against the data on Oct 26, 2026.
   demo companies, and the Form D benchmark lookup. If a test fails after a
   deliberate change, update the expected value in the same pull request and
   say why.
-- **`src/data/formd/benchmarks.json` and `docs/charts/*.png` are generated**
-  by `pipeline/analyze.py`. Never edit them by hand; change the Python and
+- **`src/data/formd/benchmarks.json`, `src/data/formd/summary.json` and
+  `docs/charts/*.png` are generated** by `pipeline/analyze.py` and
+  `pipeline/summarize.py`. Never edit them by hand; change the Python and
   re-run it.
+- Run the Python tests before and after any pipeline change:
+  `pipeline/.venv/bin/pip install -r pipeline/requirements-dev.txt`, then
+  `pipeline/.venv/bin/python -m pytest pipeline/tests`.
+- Never show a **dollar total** of Form D amounts. Amounts are self-reported
+  and a few huge filings dominate any sum (see step 4). Use counts and
+  medians.
 - Every number on the site that comes from Form D must come from a
   generated file (or, later, the database), never be typed into a page.
   Then a data refresh can't leave a wrong number behind.
@@ -94,6 +101,7 @@ Everything is in `src/`. The `@/` in imports means `src/`.
 | `src/lib/cases/`, `src/data/historical-cases.ts` | Turns risk flags into tags and matches them to 5 sourced failure cases (WeWork, Fast, Airlift, Bird, Theranos). |
 | `src/lib/formd/benchmarks.ts` | Looks up the Form D benchmark for a startup's sector and check size (see section 3b). |
 | `src/data/formd/benchmarks.json` | **Generated** by `pipeline/analyze.py`. The Form D results the site reads (about 54 KB). |
+| `src/data/formd/summary.json` | **Generated** by `pipeline/summarize.py` (about 11 KB). Headline numbers, the cleaning funnel, rounds and median round size per year (with rounds by sector), sectors, amount buckets and the top 10 states. No page reads it yet; the new home page will. |
 | `src/data/demo-dataset.ts` | The 10 made-up demo startups (NovaPay, CloudCore, MedFlow, …). |
 | `src/data/form-options.ts` | The industry and stage lists in the form. |
 | `src/lib/storage/` | Saves companies in the visitor's browser (`localStorage`, key `venturelens.companies.v1`). Nothing is shared between visitors or devices. |
@@ -110,15 +118,18 @@ and no database today.
 | File | What it does |
 |---|---|
 | `pipeline/download.py` | Reads the SEC's Form D data-sets page, downloads every quarterly zip (2008 Q1 → 2026 Q3, 75 zips, about 1.2 GB unzipped) into `pipeline/data/raw/`, skips ones already there, and waits 0.2 s between requests. Needs `SEC_USER_AGENT="Name email"` set, because the SEC refuses anonymous requests. |
-| `pipeline/build_dataset.py` | Cleans the filings into funding rounds (section 2). Writes three files to `pipeline/data/processed/` plus `data_quality_report.md`. |
+| `pipeline/build_dataset.py` | Cleans the filings into funding rounds (section 2). Writes three parquet files to `pipeline/data/processed/`, plus `data_quality_report.md` and `funnel.json` (the company and row count at each cleaning step). Takes about 20 seconds. |
 | `pipeline/analyze.py` | Kaplan–Meier analysis of "time until another Form D filing". Writes `src/data/formd/benchmarks.json` and the two charts in `docs/charts/`. |
+| `pipeline/summarize.py` | Plain counts and medians for the website: reads `venture_rounds.parquet`, `funnel.json` and the end date in `benchmarks.json`, and writes `src/data/formd/summary.json`. Run it after `analyze.py`. It stops with an error if the funnel and the rounds file disagree. |
+| `pipeline/tests/` | pytest tests for `summarize.py` and the funnel in `build_dataset.py`, on a tiny hand-made dataset. |
+| `pipeline/requirements-dev.txt` | `requirements.txt` plus pytest 9.1.1. |
 | `pipeline/DECISIONS.md` | Why each cleaning rule exists and where it can be wrong. |
 | `pipeline/FINDINGS.md` | The results in words. Its **Validation** table is still empty. |
-| `pipeline/README.md` | How to run the three scripts, and what each output column means. |
+| `pipeline/README.md` | How to run the four scripts, and what each output column means. |
 | `pipeline/requirements.txt` | pandas, pyarrow, requests, lifelines 0.30.0, matplotlib. The local virtual environment `pipeline/.venv` uses Python 3.14. |
 
 Raw zips, processed parquet files and the virtual environment are
-git-ignored. Only `benchmarks.json` and the charts are committed. The
+git-ignored. Only `benchmarks.json`, `summary.json` and the charts are committed. The
 pipeline is **run by hand**; nothing refreshes it automatically.
 
 ### Other files
@@ -267,11 +278,20 @@ Each step ends with a check. Don't start the next step until it passes.
    the cleaning funnel, rounds and median amount per year by sector, the top
    states, and the headline numbers. No page reads it yet. Add pytest tests
    for the new functions. *Check:* the numbers match
-   `data_quality_report.md` and section 2 above.
+   `data_quality_report.md` and section 2 above. *(Done in
+   `pipeline/summarize.py`. Dollar totals were left out: the 1,000 largest
+   rounds are 45% of the $1.44 trillion sum.)*
 4. **Fill in the validation table** in FINDINGS.md for 8–10 well-known
    startups (for example Figma, Airbnb, Plaid, Ramp): rounds reported in the
-   press versus rounds found in Form D. *Check:* Meng reads and agrees with
-   each row.
+   press versus rounds found in Form D. Also look at the largest "rounds",
+   which include filings that aren't startup raises: a $48 billion round
+   with one investor (LOWE INTERNATIONAL HOLDING, almost certainly a typo),
+   KKR private-equity "conglomerate" LLCs with 47,000+ investors, buyout
+   holding companies ("PICARD HOLDCO", "LAVA TOPCO") and a bank. Decide
+   with Meng whether a cleaning rule should drop them; they don't move
+   medians or the follow-on rates much, but they would appear in the
+   company lookup. *Check:* Meng reads and agrees with each row and
+   decision.
 
 **Phase B — design**
 

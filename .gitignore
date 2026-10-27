@@ -48,3 +48,4 @@ next-env.d.ts
 /pipeline/data/processed/
 **/__pycache__/
 *.pyc
+.pytest_cache/

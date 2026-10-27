@@ -451,5 +451,28 @@
       "companies": 1616,
       "share_of_rounds": 0.0248
     }
+  ],
+  "rules": {
+    "round_merge_window_days": 90,
+    "startup_first_round_on_or_after": "2010-01-01",
+    "young_company_years": 5,
+    "established_revenue_range": "Over $100,000,000"
+  },
+  "exclusions": [
+    {
+      "rule": "vehicle_name",
+      "companies": 811,
+      "rounds": 1098
+    },
+    {
+      "rule": "established_revenue",
+      "companies": 93,
+      "rounds": 133
+    },
+    {
+      "rule": "reviewed",
+      "companies": 21,
+      "rounds": 28
+    }
   ]
 }

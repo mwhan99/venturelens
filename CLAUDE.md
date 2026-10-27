@@ -94,6 +94,8 @@ Everything is in `src/`. The `@/` in imports means `src/`.
 | `src/lib/formd/summary.ts` | Reads `summary.json` and `benchmarks.json` for the home page: `getHomeData()`, `getOddsTable()` for the picker, `findings()` (the key-findings sentences, generated from the data so they stay true after a refresh), and number formatting (`pct`, `count`, `money`, `longDate`). |
 | `src/components/charts/Charts.tsx`, `src/components/home/OddsPicker.tsx` | Browser-side ("client") components: hand-drawn SVG `YearBars`, `OddsCurve` (one or two curves) and `SectorBars` (no chart library; they measure their width, redraw on resize, show hover tooltips, and include a hidden table for screen readers), and the home page's sector × round-size picker with an "Open in the explorer" link. |
 | `src/app/explore/page.tsx`, `src/components/explore/Explorer.tsx`, `src/lib/formd/explorer.ts` | **Fundraising odds explorer** (`/explore`). Pick a sector, then a round size *or* a stage (picking one clears the other). Shows the 24-month rate against all startups, months 6/12/18/24/36, the typical gap, the sample size, and the curve. The choice is kept in the address (`?sector=fintech&size=1-5m`, `?sector=all&stage=3-plus`), so every view is a shareable link; unknown values fall back to Technology. The page is prebuilt; the part that reads the address sits inside `<Suspense>` (this Next.js version requires it for `useSearchParams`). `explorer.ts` turns `benchmarks.json` into the 56 groups the page can show. |
+| `src/app/methodology/page.tsx` | **Methodology** (`/methodology`), in plain English with a sticky table of contents on wide screens: in short, what Form D is, the cleaning funnel (each step explained, with the likely-startup exclusion counts), what counts as a round, how “raising again” is measured (Kaplan–Meier, typical gap, the 3-month floor, the 100-round minimum), the validation table, limitations, the calculator’s formulas, and how it’s built. Rule settings and counts come from `summary.json` (`rules`, `exclusions`, `funnel`); the wording is hand-written, so **if a cleaning rule changes, update this page with DECISIONS.md**. |
+| `src/data/validation.ts` | The step 4 validation table (10 companies, 59 of 82 reported rounds found), hand-researched, sorted from most to least complete. Keep it in step with the table in `pipeline/FINDINGS.md`. |
 | `src/app/analyze/page.tsx` + `src/components/analyze/` | **Analyze Startup.** The input form, results, Bear/Base/Bull scenarios, risk flags, the Form D financing benchmark card, and "Save". |
 | `src/app/portfolio/page.tsx`, `portfolio/[id]/page.tsx` + `src/components/portfolio/` | **Portfolio**: the four summary cards (moved here from the old dashboard), the saved-company list, and one page per saved company with historical case matches and the "Load demo dataset" button. |
 | `src/app/memo/page.tsx` + `components/memo/` | **Investment Memo**, printable to PDF. The text is written by `src/lib/memo/buildMemo.ts`. |
@@ -105,7 +107,7 @@ Everything is in `src/`. The `@/` in imports means `src/`.
 | `src/lib/cases/`, `src/data/historical-cases.ts` | Turns risk flags into tags and matches them to 5 sourced failure cases (WeWork, Fast, Airlift, Bird, Theranos). |
 | `src/lib/formd/benchmarks.ts` | Looks up the Form D benchmark for a startup's sector and check size (see section 3b). |
 | `src/data/formd/benchmarks.json` | **Generated** by `pipeline/analyze.py`. The Form D results the site reads (about 54 KB). |
-| `src/data/formd/summary.json` | **Generated** by `pipeline/summarize.py` (about 11 KB). Headline numbers, the cleaning funnel, rounds and median round size per year (with rounds by sector), sectors, amount buckets and the top 10 states. The home page reads it through `src/lib/formd/summary.ts`. |
+| `src/data/formd/summary.json` | **Generated** by `pipeline/summarize.py` (about 11 KB). Headline numbers, the cleaning funnel, rounds and median round size per year (with rounds by sector), sectors, amount buckets, the top 10 states, the cleaning `rules` (90-day window, 2010 start, 5-year age, $100M revenue, taken from `build_dataset.py`) and the `exclusions` per likely-startup rule. The home page reads it through `src/lib/formd/summary.ts`; the methodology page reads it directly. |
 | `src/data/demo-dataset.ts` | The 10 made-up demo startups (NovaPay, CloudCore, MedFlow, …). |
 | `src/data/form-options.ts` | The industry and stage lists in the form. |
 | `src/lib/storage/` | Saves companies in the visitor's browser (`localStorage`, key `venturelens.companies.v1`). Nothing is shared between visitors or devices. |
@@ -352,7 +354,8 @@ All of these read generated files, so they are prebuilt and load instantly.
    curves. The choice lives in the address, e.g.
    `/explore?sector=fintech&size=1-5m`, so every view is a shareable link.)*
 8. **Methodology page** (`/methodology`). *Check:* Meng reads it and it's
-   accurate and easy to follow.
+   accurate and easy to follow. *(Built; waiting for Meng's read-through.
+   The home page's funnel card and the explorer now link to it.)*
 9. **Move the calculator to `/screen`.** Regroup Analyze, Portfolio, Memo and
    Compare under it. Load the demo companies on first visit. Remove the two
    weak pages. Add redirects from the old addresses. *Check:* `npm test`

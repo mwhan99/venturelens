@@ -151,3 +151,26 @@ def test_funnel_steps_and_text_from_build_dataset():
     ]
     text = format_funnel(steps, venture_stats)
     assert "Likely startups                   3          75.0%            6  venture rounds" in text
+
+
+def test_rules_come_from_build_dataset_and_exclusions_are_counted():
+    non_startups = pd.DataFrame(
+        [
+            {"cik": "1", "rule": "vehicle_name", "rounds": 2},
+            {"cik": "2", "rule": "vehicle_name", "rounds": 1},
+            {"cik": "3", "rule": "reviewed", "rounds": 4},
+        ]
+    )
+    summary = build_summary(make_rounds(), FUNNEL, END_DATE, non_startups)
+    assert summary["rules"] == {
+        "round_merge_window_days": 90,
+        "startup_first_round_on_or_after": "2010-01-01",
+        "young_company_years": 5,
+        "established_revenue_range": "Over $100,000,000",
+    }
+    # Fixed order, and a rule with no companies is left out.
+    assert summary["exclusions"] == [
+        {"rule": "vehicle_name", "companies": 2, "rounds": 3},
+        {"rule": "reviewed", "companies": 1, "rounds": 4},
+    ]
+    assert build_summary(make_rounds(), FUNNEL, END_DATE)["exclusions"] == []

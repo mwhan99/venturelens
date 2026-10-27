@@ -134,3 +134,24 @@ Sectors that are kept:
 | Other/Unclassified | Other |
 
 An offering whose final `TOTALAMOUNTSOLD` is 0 or null is not a completed round. Those offerings are counted, then left out of the venture 90-day merge. The other two parquet files still include them. `observed_round_number`, the gaps, and `is_censored` in `venture_rounds.parquet` are recomputed from the remaining offerings, so they can differ from `startup_rounds.parquet` when a zero-dollar filing was part of a company's history. `is_venture` is true on every row in that file. `company_industry` stays the industry from the original first observed round, including when that round's amount was zero and the round itself is not in the venture file.
+
+## Which venture companies are likely startups
+
+The young-company rule lets through companies that are new on paper but are not startups. A private-equity buyout creates a new holding company, usually named "…TopCo", "…HoldCo" or "…Parent", that was incorporated weeks before its first Form D. Fund vehicles that file as an LLC in an operating industry also slip past the pooled-fund drop. Among the largest "rounds" in the venture set were a $48 billion filing from one investor, KKR "conglomerate" LLCs with more than 47,000 investors, and a cluster of ten filings that each reported $1.4–2.0 billion from exactly 11 investors on the same two dates.
+
+After the venture rounds are built, a company is dropped from `venture_rounds.parquet` when one of these applies. The first that applies is recorded.
+
+1. **Reviewed.** The CIK is listed in `pipeline/excluded_companies.csv`, with a reason based on what the filing shows. The list covers what the two automatic rules miss among rounds of $1 billion or more: implausible amounts, the 11-investor cluster, fund vehicles whose names do not match the pattern below, and subsidiaries or joint ventures of public companies. The build stops with an error if a listed CIK is not in the venture set, so a typo in the list cannot silently do nothing.
+2. **Vehicle name.** Any round's entity name contains, as a whole word, TopCo, HoldCo, MidCo, BidCo (with or without a space), Parent, Conglomerate, Intermediate, Acquisition Corp(oration), or Merger Sub. This is `VEHICLE_NAME_PATTERN` in `build_dataset.py`.
+3. **Established revenue.** The company's first observed round reports revenue "Over $100,000,000". A young company raising a startup round does not report that much revenue. Examples it catches: Windstream, Towers Watson, J.Jill, Laureate Education, and SoFi in 2022.
+
+The rule is applied to whole companies, so every remaining company keeps its round numbers, gaps and censoring exactly as built. The excluded companies stay in `rounds.parquet` and `startup_rounds.parquet`, and `pipeline/data/processed/likely_non_startups.csv` lists each one with its rule and a one-line reason, so a company lookup can explain why a company is not in the benchmark.
+
+On the October 2026 data this drops 925 companies and 1,259 rounds (1.1% of rounds): 811 by vehicle name, 93 by revenue, and 21 reviewed. The benchmarks barely move. The overall share of rounds followed by another filing within 24 months goes from 32.7% to 32.8%, and no sector's 24-month rate moves by more than 0.3 points. The rule is there so that the dataset, and any page that lists companies, does not present buyout shells or typos as startups.
+
+Where it can be wrong:
+
+- The name pattern catches some real startups that raise through a holding company. Footprint, a venture-backed packaging company that files as "Footprint International Holdco, Inc.", is dropped. If more cases like this turn up, an allow list of CIKs to keep is the fix.
+- It misses buyout vehicles with other names (probably "SATURN ULTIMATE, INC." and "Healthcare Technology Holdings, Inc." among the $1 billion rounds) unless they report revenue over $100M or are added to the reviewed list.
+- The revenue rule uses the first observed round, which is not always the company's first raise. A company that was already large when it first appears is dropped even if it was venture-backed earlier.
+- Most filers decline to disclose revenue, so the revenue rule only sees companies that chose to report it.

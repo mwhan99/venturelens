@@ -134,6 +134,8 @@ def test_funnel_steps_and_text_from_build_dataset():
         "venture_companies": 5,
         "relevant_offerings": 8,
         "completed_companies": 4,
+        "completed_rounds": 7,
+        "likely_startup_companies": 3,
         "venture_rounds": 6,
         "incomplete_offerings": 1,
     }
@@ -144,7 +146,8 @@ def test_funnel_steps_and_text_from_build_dataset():
         ("US", 8, 16),
         ("Startups", 6, 9),
         ("Venture-relevant", 5, 8),
-        ("Completed rounds", 4, 6),
+        ("Completed rounds", 4, 7),
+        ("Likely startups", 3, 6),
     ]
     text = format_funnel(steps, venture_stats)
-    assert "Completed rounds                  4          80.0%            6  venture rounds" in text
+    assert "Likely startups                   3          75.0%            6  venture rounds" in text

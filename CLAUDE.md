@@ -106,7 +106,7 @@ Everything is in `src/`. The `@/` in imports means `src/`.
 | `src/data/form-options.ts` | The industry and stage lists in the form. |
 | `src/lib/storage/` | Saves companies in the visitor's browser (`localStorage`, key `venturelens.companies.v1`). Nothing is shared between visitors or devices. |
 | `src/lib/dashboard/summary.ts`, `src/lib/benchmark/dataset.ts` | Numbers for the dashboard cards and the Dataset Benchmark page. |
-| `src/lib/**/*.test.ts`, `vitest.config.mts` | The tests, run with `npm test`. `finance/novapay.test.ts` is the hand-checked NovaPay case (analysis, Bear/Base/Bull, risk flags). `cases/match.test.ts` fixes which historical cases each demo company matches. `formd/benchmarks.test.ts` checks the sector and size mapping, a real lookup (FinTech $1–5M at 16 months = 23%), the 36-month cap and "not measurable" under 3 months. |
+| `src/lib/**/*.test.ts`, `vitest.config.mts` | The tests, run with `npm test`. `finance/novapay.test.ts` is the hand-checked NovaPay case (analysis, Bear/Base/Bull, risk flags). `cases/match.test.ts` fixes which historical cases each demo company matches. `formd/benchmarks.test.ts` checks the sector and size mapping, a real lookup (FinTech $1–5M at 16 months = 23% of 949 rounds; update it when the data is refreshed), the 36-month cap and "not measurable" under 3 months. |
 | `next.config.ts` | Turns off the Next.js dev indicator. Nothing else. |
 | `public/*.svg` | Leftover starter images from create-next-app. Unused. |
 
@@ -121,7 +121,8 @@ and no database today.
 | `pipeline/build_dataset.py` | Cleans the filings into funding rounds (section 2). Writes three parquet files to `pipeline/data/processed/`, plus `data_quality_report.md` and `funnel.json` (the company and row count at each cleaning step). Takes about 20 seconds. |
 | `pipeline/analyze.py` | Kaplan–Meier analysis of "time until another Form D filing". Writes `src/data/formd/benchmarks.json` and the two charts in `docs/charts/`. |
 | `pipeline/summarize.py` | Plain counts and medians for the website: reads `venture_rounds.parquet`, `funnel.json` and the end date in `benchmarks.json`, and writes `src/data/formd/summary.json`. Run it after `analyze.py`. It stops with an error if the funnel and the rounds file disagree. |
-| `pipeline/tests/` | pytest tests for `summarize.py` and the funnel in `build_dataset.py`, on a tiny hand-made dataset. |
+| `pipeline/excluded_companies.csv` | The hand-reviewed list of 21 companies that aren't startups but pass the automatic rules (a $48B "round" from 1 investor, a cluster of $1.5B filings from exactly 11 investors, Apollo and Goldman funds, subsidiaries of public companies). One reason per row. The build stops if a listed ID isn't in the data. |
+| `pipeline/tests/` | pytest tests for `summarize.py`, the funnel and the likely-startup rules in `build_dataset.py`, on tiny hand-made datasets. |
 | `pipeline/requirements-dev.txt` | `requirements.txt` plus pytest 9.1.1. |
 | `pipeline/DECISIONS.md` | Why each cleaning rule exists and where it can be wrong. |
 | `pipeline/FINDINGS.md` | The results in words. Its **Validation** table is still empty. |
@@ -164,6 +165,15 @@ tab-separated tables. VentureLens uses three tables: `FORMDSUBMISSION`
 8. **Venture-relevant** = a venture industry (mapped to 6 sectors:
    Technology, HealthTech/Biotech, FinTech, Energy/ClimateTech, Consumer,
    Other/Unclassified), a corporation or LLC, and more than $0 sold.
+9. **Likely startup** (added in step 4) = not a buyout, SPAC or fund vehicle
+   by name ("…TopCo", "…HoldCo", "…Parent", "…Acquisition Corp" and
+   similar), no revenue over $100M at its first observed round, and not on
+   the hand-reviewed list `pipeline/excluded_companies.csv`. 925 companies
+   (1,259 rounds) are dropped this way. They stay in `rounds.parquet`, and
+   `likely_non_startups.csv` records which rule dropped each one, so the
+   company lookup can explain it. Known misses: Footprint (a real startup
+   that files as "Footprint International Holdco") is dropped by the name
+   rule.
 
 **Outputs** (in `pipeline/data/processed/`, git-ignored):
 
@@ -171,11 +181,19 @@ tab-separated tables. VentureLens uses three tables: `FORMDSUBMISSION`
 |---|---|---|---|
 | `rounds.parquet` | 247,406 | 166,601 | Every operating-company round, startup or not |
 | `startup_rounds.parquet` | (subset) | | Startups only |
-| `venture_rounds.parquet` | 114,695 | 68,441 | Venture-relevant startups. **The benchmark dataset.** About 3 MB on disk. |
+| `venture_rounds.parquet` | 113,436 | 67,516 | Venture-relevant likely startups. **The benchmark dataset.** About 3 MB on disk. |
+| `likely_non_startups.csv` | 925 | 925 | Companies dropped by rule 9, with the rule and a one-line reason each. |
+| `funnel.json` | 7 | | Companies and rows at each cleaning step. |
 
-Rounds per year in the benchmark set peak in **2021 (9,548)** and fall to
-6,508 in 2025. 2026 has data through Sept 30 only. The biggest states are CA
-(25,375 rounds), NY (12,695), MA, TX and FL.
+Rounds per year in the benchmark set peak in **2021 (9,425)** and fall to
+6,429 in 2025. 2026 has data through Sept 30 only. The biggest states are CA
+(25,173 rounds), NY (12,463), MA, TX and FL. The median round is $1.4M.
+
+**How complete Form D is.** For 10 well-known startups, about 59 of 82
+publicly reported rounds appear (the table is in `pipeline/FINDINGS.md`).
+Some companies file every round (Ramp, Databricks); others stop after a
+round or two (Plaid, Rippling). Research finds most venture rounds have no
+Form D, which is why every rate here is a lower bound.
 
 **Well-known names.** Figma, Airbnb, Plaid and Ramp are in `rounds.parquet`.
 Stripe, Inc. (11 rounds) and Notion Labs are in it but are **not** counted
@@ -183,7 +201,11 @@ as startups, because their first filing here says they were over five years
 old. So a company lookup must search `rounds.parquet` and explain why a
 company is or isn't in the benchmark. Some names are shared by unrelated
 filers (for example "BREX … DST" real-estate trusts), so results must show
-the state and industry to tell them apart.
+the state and industry to tell them apart. Many companies file under a legal
+name (Instacart is "Maplebear Inc.", Warby Parker is "JAND, Inc.", Rippling
+is "People Center, Inc."), and a change of legal form gives a new SEC ID
+(Peloton appears as an LLC and as an Inc.), so the lookup needs brand-name
+aliases.
 
 ---
 
@@ -228,7 +250,7 @@ the state and industry to tell them apart.
   runway picks the month to read. If runway is shorter than the typical gap,
   the card is shown as a caution.
 
-Headline results (FINDINGS.md): 32.7% of rounds are followed by another
+Headline results (FINDINGS.md): 32.8% of rounds are followed by another
 filing within 24 months; Technology 37.6% and HealthTech/Biotech 36.8%
 are tied; $1–5M rounds beat both the smallest and the largest; companies on
 their 3rd+ observed round are far more likely to file again.
@@ -246,11 +268,11 @@ the data to one startup".
 
 | Page | What it shows | Data from |
 |---|---|---|
-| `/` **Home** | The story: headline numbers (114,695 rounds, 68,441 startups, 2010–2026), rounds per year with the 2021 peak, the key findings, and buttons to the explorer and lookup | generated files |
+| `/` **Home** | The story: headline numbers (113,436 rounds, 67,516 startups, 2010–2026), rounds per year with the 2021 peak, the key findings, and buttons to the explorer and lookup | generated files |
 | `/explore` **Fundraising odds** | Pick sector, round size and stage. See the chance of another filing by month 6, 12, 18, 24, 36 on a curve, the typical gap, how many rounds it's based on, and a comparison with all startups. The choices live in the address, so every view is a shareable link. | `benchmarks.json` |
 | `/companies` **Company lookup** | Search any Form D filer by name. Its page shows every round (date, amount, investors), the gaps between them, and whether it's in the benchmark and why not. | database (Phase D) |
 | `/screen` **Screen a startup** | Today's Analyze, Portfolio, Memo and Compare, grouped. The Form D benchmark card is moved to the top, and the demo companies load automatically, so nothing is ever empty. | browser |
-| `/methodology` **Methodology** | Plain-English version of DECISIONS.md and FINDINGS.md: the funnel from 365,344 filers to 68,441 startups, the cleaning rules, the statistics, the validation table, and the limitations. | generated files |
+| `/methodology` **Methodology** | Plain-English version of DECISIONS.md and FINDINGS.md: the funnel from 365,344 filers to 67,516 startups, the cleaning rules, the statistics, the validation table, and the limitations. | generated files |
 
 Pages and features to remove: the **Dataset Benchmark** page (it compares
 made-up companies with each other) and the standalone **Historical Cases**
@@ -291,7 +313,9 @@ Each step ends with a check. Don't start the next step until it passes.
    with Meng whether a cleaning rule should drop them; they don't move
    medians or the follow-on rates much, but they would appear in the
    company lookup. *Check:* Meng reads and agrees with each row and
-   decision.
+   decision. *(Done: about 59 of 82 reported rounds found. Meng chose to
+   drop likely non-startups from the benchmark set, which is rule 9 in
+   section 2. The 24-month rates moved by at most 0.3 points.)*
 
 **Phase B — design**
 
@@ -322,7 +346,7 @@ All of these read generated files, so they are prebuilt and load instantly.
 
 **Phase D — company lookup (needs a database)**
 
-68,441 startups (166,601 filers in total) are too many to bundle into the
+67,516 startups (166,601 filers in total) are too many to bundle into the
 site, so the lookup needs a small database. The plan reuses HiddenHire's
 setup.
 
@@ -333,7 +357,9 @@ setup.
     the row counts in Supabase match section 2 (247,406 rounds).
 11. **Lookup pages** (`/companies` and `/companies/[cik]`). *Check:*
     searching "Figma" shows Figma, Inc.'s rounds; searching "Stripe" shows
-    Stripe, Inc. with a note explaining why it isn't in the benchmark.
+    Stripe, Inc. with a note explaining why it isn't in the benchmark;
+    searching "Instacart" finds Maplebear Inc.; "LAVA TOPCO" shows the
+    buyout-vehicle note from `likely_non_startups.csv`.
 
 **Phase E — keep it fresh, then polish**
 

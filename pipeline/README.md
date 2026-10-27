@@ -45,7 +45,7 @@ Downloaded zips, extracted files, the virtualenv, and the generated dataset are 
 
 ## Outputs
 
-`pipeline/data/processed/rounds.parquet` has one row per funding round, including companies that are not startups. `pipeline/data/processed/startup_rounds.parquet` has the same columns and only the companies flagged `is_startup`. `pipeline/data/processed/venture_rounds.parquet` keeps venture-relevant startups only, and only rounds built from offerings with a final amount sold greater than zero. It adds `venture_sector` and `is_venture`.
+`pipeline/data/processed/rounds.parquet` has one row per funding round, including companies that are not startups. `pipeline/data/processed/startup_rounds.parquet` has the same columns and only the companies flagged `is_startup`. `pipeline/data/processed/venture_rounds.parquet` keeps venture-relevant startups only, and only rounds built from offerings with a final amount sold greater than zero. It adds `venture_sector` and `is_venture`. It also leaves out companies that look like buyout, SPAC or fund vehicles, established businesses, or implausible filings; `pipeline/data/processed/likely_non_startups.csv` lists each of those with the rule that dropped it (`reviewed`, `vehicle_name` or `established_revenue`) and a one-line reason. The hand-reviewed part of that rule is `pipeline/excluded_companies.csv`, which is committed. See "Which venture companies are likely startups" in DECISIONS.md.
 
 | Column | Meaning |
 |---|---|

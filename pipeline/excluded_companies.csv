@@ -1,0 +1,22 @@
+cik,entity_name,reason
+0001757557,LOWE INTERNATIONAL HOLDING Co,Implausible amount: $48.0B sold to 1 investor
+0001951198,1ST DEPOSIT & COMMERCE BANK INC.,Implausible amount: $7.44B sold to 1 investor; a bank
+0002149220,MFG DIVERSIFIED HOLDINGS INC,Implausible amount: $1.51B sold to 1 investor with revenue of $1 to $1M
+0001836334,"BP SUN, INC.",Suspicious cluster: $1.4B to $2.0B from exactly 11 investors in filings dated 2020-12-22 and 2021-01-28
+0001836318,"M. ii. M. i, INC.",Suspicious cluster: $1.4B to $2.0B from exactly 11 investors in filings dated 2020-12-22 and 2021-01-28
+0001836316,"Brown & Brown Helping Care, Inc.",Suspicious cluster: $1.4B to $2.0B from exactly 11 investors in filings dated 2020-12-22 and 2021-01-28
+0001836324,"Sharif Da'Mani, INC.",Suspicious cluster: $1.4B to $2.0B from exactly 11 investors in filings dated 2020-12-22 and 2021-01-28
+0001836330,"Alfayiz TA, INC.",Suspicious cluster: $1.4B to $2.0B from exactly 11 investors in filings dated 2020-12-22 and 2021-01-28
+0001836328,"Emhotip, Inc.",Suspicious cluster: $1.4B to $2.0B from exactly 11 investors in filings dated 2020-12-22 and 2021-01-28
+0001842750,"Masiyah ConnectWorks, Inc.",Suspicious cluster: $1.4B to $2.0B from exactly 11 investors in filings dated 2020-12-22 and 2021-01-28
+0001842763,"Kealoha Mikael, Inc.",Suspicious cluster: $1.4B to $2.0B from exactly 11 investors in filings dated 2020-12-22 and 2021-01-28
+0001842758,"Mila Laniakea, Inc.",Suspicious cluster: $1.4B to $2.0B from exactly 11 investors in filings dated 2020-12-22 and 2021-01-28
+0001824767,MAKATUU INC,Suspicious cluster: $1.05B from exactly 11 investors in 2021 with the same pattern
+0001891807,"HF Marketable Securities Pool, LLC",Investment vehicle: a securities pool
+0001516049,"Northern Pines Funding, LLC",Investment vehicle: a funding entity
+0002000597,Apollo Asset Backed Credit Co LLC,Investment vehicle: an Apollo credit fund with 3500+ investors
+0001971381,Apollo Infrastructure Co LLC,Investment vehicle: an Apollo infrastructure fund with 6300+ investors
+0001731560,Goldman Sachs Renewable Power LLC,Investment vehicle: a Goldman Sachs fund with 1100+ investors
+0001488048,CME GROUP INDEX HOLDINGS LLC,Not a startup: a joint venture of established exchange companies
+0001986579,"Coinbase Credit, Inc.",Not a startup: a lending subsidiary of a public company
+0001828519,Uber Freight Holding Corp,Not a startup: a subsidiary of a public company

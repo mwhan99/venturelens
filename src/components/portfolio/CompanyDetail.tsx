@@ -78,7 +78,7 @@ export function CompanyDetail({ id }: { id: string }) {
         </p>
         <Link
           href="/portfolio"
-          className="mt-5 inline-flex h-10 items-center rounded-md bg-[#1f8a70] px-4 text-sm font-medium text-white hover:bg-[#18735d]"
+          className="mt-5 inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-medium text-white hover:bg-brand-dark"
         >
           Back to Portfolio
         </Link>

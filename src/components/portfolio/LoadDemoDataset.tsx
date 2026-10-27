@@ -5,26 +5,6 @@ import {
   findMatchingDemoCompanies,
   loadDemoDataset,
 } from "@/lib/storage/demo";
-import {
-  useIsClient,
-  useSavedCompanies,
-} from "@/lib/storage/useSavedCompanyCount";
-
-export function DashboardDemoPrompt() {
-  const isClient = useIsClient();
-  const companies = useSavedCompanies();
-
-  if (!isClient || companies.length > 0) {
-    return null;
-  }
-
-  return (
-    <div className="mt-8">
-      <LoadDemoDataset prominent />
-    </div>
-  );
-}
-
 export function LoadDemoDataset({ prominent = false }: { prominent?: boolean }) {
   const [confirming, setConfirming] = useState(false);
   const [matchingNames, setMatchingNames] = useState<string[]>([]);
@@ -68,7 +48,7 @@ export function LoadDemoDataset({ prominent = false }: { prominent?: boolean }) 
             <button
               type="button"
               onClick={confirmLoad}
-              className="inline-flex h-9 items-center rounded-md bg-[#1f8a70] px-3 text-sm font-medium text-white hover:bg-[#18735d]"
+              className="inline-flex h-9 items-center rounded-md bg-brand px-3 text-sm font-medium text-white hover:bg-brand-dark"
             >
               Load simulated dataset
             </button>
@@ -85,7 +65,7 @@ export function LoadDemoDataset({ prominent = false }: { prominent?: boolean }) 
 
   if (prominent) {
     return (
-      <section className="rounded-lg border border-[#1f8a70]/25 bg-white px-6 py-10 text-center shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:px-10">
+      <section className="rounded-lg border border-brand/25 bg-white px-6 py-10 text-center shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:px-10">
         <h2 className="text-lg font-semibold text-slate-900">
           No companies saved yet
         </h2>
@@ -96,7 +76,7 @@ export function LoadDemoDataset({ prominent = false }: { prominent?: boolean }) 
         <button
           type="button"
           onClick={startLoad}
-          className="mt-6 inline-flex h-12 items-center justify-center rounded-md bg-[#1f8a70] px-6 text-base font-semibold text-white hover:bg-[#18735d]"
+          className="mt-6 inline-flex h-12 items-center justify-center rounded-md bg-brand px-6 text-base font-semibold text-white hover:bg-brand-dark"
         >
           Load demo dataset
         </button>
@@ -124,7 +104,7 @@ export function LoadDemoDataset({ prominent = false }: { prominent?: boolean }) 
         <button
           type="button"
           onClick={startLoad}
-          className="inline-flex h-10 w-full shrink-0 items-center justify-center rounded-md bg-[#1f8a70] px-4 text-sm font-medium text-white hover:bg-[#18735d] sm:w-auto"
+          className="inline-flex h-10 w-full shrink-0 items-center justify-center rounded-md bg-brand px-4 text-sm font-medium text-white hover:bg-brand-dark sm:w-auto"
         >
           Load Demo Dataset
         </button>

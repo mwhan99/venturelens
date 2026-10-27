@@ -1,20 +1,31 @@
 @import "tailwindcss";
 
+/* Atlas design (chosen in step 5). Chart colours were checked with the
+   colour-blindness validator against the white card surface. */
 :root {
-  --background: #f3f5f8;
-  --foreground: #0f172a;
+  --background: #f5f4f8;
+  --foreground: #121117;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-ibm-plex-sans);
+  --color-card: #ffffff;
+  --color-ink: #121117;
+  --color-muted: #5d5b68;
+  --color-line: #e7e5ee;
+  --color-brand: #5b3df5;
+  --color-brand-dark: #4a2fd6;
+  --color-brand-soft: #ece8ff;
+  --color-coral: #e0552d;
+  --color-lime: #d7f36b;
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-space-grotesk);
   --font-mono: var(--font-ibm-plex-mono);
 }
 
 html,
 body {
-  height: 100%;
   max-width: 100%;
   overflow-x: hidden;
 }
@@ -53,5 +64,5 @@ body {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-ibm-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
 }

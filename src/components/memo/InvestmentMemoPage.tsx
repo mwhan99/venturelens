@@ -11,7 +11,7 @@ import {
 } from "@/lib/storage/useSavedCompanyCount";
 
 const selectClass =
-  "h-11 w-full min-w-0 max-w-full appearance-none rounded-md border border-slate-200 bg-white px-3 pr-10 text-sm text-slate-900 outline-none transition-colors focus:border-[#1f8a70] focus:ring-2 focus:ring-[#1f8a70]/15";
+  "h-11 w-full min-w-0 max-w-full appearance-none rounded-md border border-slate-200 bg-white px-3 pr-10 text-sm text-slate-900 outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/15";
 
 function SourceBadge({ company }: { company: SavedCompany }) {
   if (!company.source) {

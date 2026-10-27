@@ -25,7 +25,7 @@ const scenarioMeta: Record<
   },
   base: {
     label: "Base Case",
-    accent: "border-t-[#1f8a70]",
+    accent: "border-t-brand",
     description: "Underwriting case",
   },
   bull: {
@@ -53,7 +53,7 @@ function AssumptionInput({
       <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">
         {label}
       </span>
-      <span className="mt-1.5 flex h-10 overflow-hidden rounded-md border border-slate-200 bg-white focus-within:border-[#1f8a70] focus-within:ring-2 focus-within:ring-[#1f8a70]/15">
+      <span className="mt-1.5 flex h-10 overflow-hidden rounded-md border border-slate-200 bg-white focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/15">
         <input
           id={id}
           value={value}

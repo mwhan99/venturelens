@@ -9,7 +9,7 @@ type FieldBaseProps = {
 };
 
 const controlClass =
-  "h-11 w-full min-w-0 max-w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#1f8a70] focus:ring-2 focus:ring-[#1f8a70]/15";
+  "h-11 w-full min-w-0 max-w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-brand focus:ring-2 focus:ring-brand/15";
 
 export function TextField({
   id,
@@ -108,7 +108,7 @@ export function AffixedField({
         {label}
       </label>
       {hint ? <p className="mt-0.5 text-xs text-slate-500">{hint}</p> : null}
-      <div className="mt-2 flex h-11 overflow-hidden rounded-md border border-slate-200 bg-white focus-within:border-[#1f8a70] focus-within:ring-2 focus-within:ring-[#1f8a70]/15">
+      <div className="mt-2 flex h-11 overflow-hidden rounded-md border border-slate-200 bg-white focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/15">
         {prefix ? (
           <span className="flex items-center border-r border-slate-200 bg-slate-50 px-3 font-mono text-sm text-slate-500">
             {prefix}

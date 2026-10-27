@@ -76,7 +76,7 @@ export function PortfolioList() {
                     <div className="flex flex-wrap items-center gap-2">
                       <Link
                         href={`/portfolio/${company.id}`}
-                        className="font-medium text-slate-900 hover:text-[#1f8a70]"
+                        className="font-medium text-slate-900 hover:text-brand"
                       >
                         {company.profile.companyName || "Untitled company"}
                       </Link>

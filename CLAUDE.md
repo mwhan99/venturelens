@@ -73,7 +73,8 @@ Numbers below were checked against the data on Oct 26, 2026.
 - Secrets (the SEC user-agent email, the Supabase keys) go in
   environment variables, GitHub Actions secrets or Vercel settings, never in
   the repo. The Supabase **secret** key (`sb_secret_…`, can write) lives
-  only in `pipeline/.env` on Meng's Mac until step 12 needs it in GitHub.
+  only in `pipeline/.env` on Meng's Mac and in the `SUPABASE_SECRET_KEY`
+  GitHub secret, which only `supabase-sync.yml` reads.
   The website and the keep-awake job use the read-only **publishable** key
   (`sb_publishable_…`). Never give the secret key a `NEXT_PUBLIC_` name or
   put it in `.env.local` (Next.js reads that file).
@@ -132,12 +133,13 @@ today.
 
 | File | What it does |
 |---|---|
-| `pipeline/download.py` | Reads the SEC's Form D data-sets page, downloads every quarterly zip (2008 Q1 → 2026 Q3, 75 zips, about 1.2 GB unzipped) into `pipeline/data/raw/`, skips ones already there, and waits 0.2 s between requests. Needs `SEC_USER_AGENT="Name email"` set, because the SEC refuses anonymous requests. |
+| `pipeline/download.py` | Reads the SEC's Form D data-sets page, downloads every quarterly zip (2008 Q1 → 2026 Q3, 75 zips, about 1.2 GB unzipped) into `pipeline/data/raw/`, skips ones already there, and waits 0.2 s between requests. Needs `SEC_USER_AGENT="Name email"` set, because the SEC refuses anonymous requests. `--check` only reports whether the SEC has posted a quarter newer than `benchmarks.json` (used by the quarterly job). |
 | `pipeline/build_dataset.py` | Cleans the filings into funding rounds (section 2). Writes three parquet files to `pipeline/data/processed/`, plus `data_quality_report.md` and `funnel.json` (the company and row count at each cleaning step). Takes about 20 seconds. |
 | `pipeline/analyze.py` | Kaplan–Meier analysis of "time until another Form D filing". Writes `src/data/formd/benchmarks.json` and the two charts in `docs/charts/`. |
 | `pipeline/summarize.py` | Plain counts and medians for the website: reads `venture_rounds.parquet`, `funnel.json` and the end date in `benchmarks.json`, and writes `src/data/formd/summary.json`. Run it after `analyze.py`. It stops with an error if the funnel and the rounds file disagree. |
 | `pipeline/excluded_companies.csv` | The hand-reviewed list of 21 companies that aren't startups but pass the automatic rules (a $48B "round" from 1 investor, a cluster of $1.5B filings from exactly 11 investors, Apollo and Goldman funds, subsidiaries of public companies). One reason per row. The build stops if a listed ID isn't in the data. |
-| `pipeline/tests/` | pytest tests for `summarize.py`, the funnel and the likely-startup rules in `build_dataset.py`, on tiny hand-made datasets. |
+| `pipeline/refresh_report.py` | Writes the quarterly pull request's description: the headline numbers before and after, and every line in README, FINDINGS and CLAUDE.md that still shows an old number. Works locally too, after a rebuild. |
+| `pipeline/tests/` | pytest tests for `summarize.py`, the funnel and the likely-startup rules in `build_dataset.py`, the new-quarter check and the refresh report, on tiny hand-made datasets. |
 | `pipeline/requirements-dev.txt` | `requirements.txt` plus pytest 9.1.1. |
 | `supabase/schema.sql` | The company-lookup database (step 10): `filers` (one row per Form D filer, with `benchmark_status`: benchmark, likely_non_startup, not_young, non_venture_industry, no_completed_round or other_legal_form, plus the reason in words), `filer_names` (every filed name plus brand aliases, with a trigram index for fuzzy search), `rounds` (all 247,406), `sync_info`, and the `search_filers(query)` function. Read-only for everyone except the secret key. Run it in the Supabase SQL Editor; safe to run again. |
 | `pipeline/supabase_sync.py` | Uploads the lookup tables from `rounds.parquet`, `venture_rounds.parquet`, `likely_non_startups.csv` and `brand_aliases.csv`. `--dry-run` builds and counts without sending. A real run upserts in batches of 2,000, deletes rows left from an older upload, then counts the rows in Supabase and fails if they differ. Reads `SUPABASE_URL` and `SUPABASE_SECRET_KEY` from the environment or `pipeline/.env`. Two data quirks it handles: two filers left their name blank on every filing (they get “Unnamed filer (SEC ID …)”), and one filing claims 100,000,000,000 investors (counts too big for the column are stored as unknown). Takes about 3 minutes. |
@@ -147,11 +149,16 @@ today.
 | `pipeline/DECISIONS.md` | Why each cleaning rule exists and where it can be wrong. |
 | `pipeline/FINDINGS.md` | The results in words. Its **Validation** table is still empty. |
 | `pipeline/README.md` | How to run the four scripts, and what each output column means. |
-| `pipeline/requirements.txt` | pandas, pyarrow, requests, lifelines 0.30.0, matplotlib. The local virtual environment `pipeline/.venv` uses Python 3.14. |
+| `pipeline/requirements.txt` | Exact versions of pandas, pyarrow, requests, lifelines, matplotlib, numpy and scipy, so GitHub's run gives the same numbers and charts as the Mac. The local virtual environment `pipeline/.venv` uses Python 3.14, like the workflows. |
+| `.github/workflows/quarterly-refresh.yml` | Step 12. On the 1st and 15th of each month (13:23 UTC) it asks the SEC page whether a quarter newer than the site's data is posted. If so, it downloads, rebuilds, runs the Python tests and opens a pull request (branch `data-refresh-2026q4` etc.) with only `benchmarks.json`, `summary.json` and the charts; it fails if any other file changed. It never commits to `main` or touches Supabase. "Run workflow" with **force** rebuilds anyway; with no new SEC data the files come out identical and no pull request is opened. Needs the `SEC_USER_AGENT` secret and "Allow GitHub Actions to create and approve pull requests" in the repository's Actions settings. |
+| `.github/workflows/supabase-sync.yml` | Runs when a change to `benchmarks.json` reaches `main` (merging a refresh pull request), or by hand. It rebuilds the data, stops if it doesn't match `main`, then runs `supabase_sync.py`, so the lookup and the site always show the same quarter. The only workflow with the `SUPABASE_SECRET_KEY` secret. |
 
 Raw zips, processed parquet files and the virtual environment are
 git-ignored. Only `benchmarks.json`, `summary.json` and the charts are committed. The
-pipeline is **run by hand**; nothing refreshes it automatically.
+quarterly workflow rebuilds them and opens a pull request when the SEC posts
+a new quarter; Meng reviews and merges it. A rebuild of the same quarters
+always gives identical files (the sale-date cutoff is the newest filing
+date, not the day the script runs).
 
 ### Other files
 
@@ -416,6 +423,12 @@ setup.
     request with the new `benchmarks.json`, `summary.json` and charts for
     Meng to merge. It never commits straight to `main`. *Check:* run it by
     hand once; the pull request shows only data changes.
+    *(Built Oct 27, 2026. Two changes to the plan: the Supabase upload
+    waits until Meng merges (a separate `supabase-sync.yml`), so the lookup
+    never shows a quarter the site doesn't; and the "sale date in the
+    future" cutoff became the newest filing date instead of the day the
+    script runs, so a rebuild is exactly repeatable. Rebuilding locally
+    gave byte-identical files before and after that change.)*
 13. **Polish.** Link previews (an Open Graph image), sitemap, page titles,
     loading and error states, and a phone check. *Check:* test on a real
     phone; paste the link into LinkedIn or iMessage and see the preview.

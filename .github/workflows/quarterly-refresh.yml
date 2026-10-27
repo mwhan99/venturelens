@@ -1,0 +1,110 @@
+# Checks twice a month whether the SEC has posted a new quarter of Form D data.
+# If it has, this rebuilds the benchmark and opens a pull request with the new
+# website data and charts for Meng to review. It never commits to main and
+# never touches Supabase; merging the pull request starts supabase-sync.yml.
+#
+# "Run workflow" with "force" ticked rebuilds even when nothing new is posted.
+# With the same SEC data the files come out identical, so no pull request is
+# opened: that is the check that the job reproduces a run on Meng's Mac.
+#
+# Needs one repository secret (Settings -> Secrets and variables -> Actions):
+#   SEC_USER_AGENT  "Name email@example.com" (the SEC refuses anonymous requests)
+# and Settings -> Actions -> General -> "Allow GitHub Actions to create and
+# approve pull requests" switched on.
+
+name: Quarterly data refresh
+
+on:
+  schedule:
+    - cron: "23 13 1,15 * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Rebuild even if the SEC has posted nothing new
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: data-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: pipeline/requirements*.txt
+
+      - name: Install the pipeline packages
+        run: pip install -r pipeline/requirements-dev.txt
+
+      - name: Is a new quarter posted?
+        id: check
+        run: python pipeline/download.py --check
+
+      - name: Is a pull request for it already open?
+        id: branch
+        if: steps.check.outputs.new_quarter == 'true' || inputs.force
+        env:
+          QUARTER: ${{ steps.check.outputs.quarter }}
+        run: |
+          name="data-refresh-${QUARTER:-rerun-$(date -u +%Y-%m-%d)}"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --heads origin "$name" > /dev/null; then
+            echo "::notice::Branch $name already exists; merge or close its pull request first."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download, build, analyze and summarize
+        id: build
+        if: steps.branch.outputs.exists == 'false'
+        run: |
+          python pipeline/download.py
+          python pipeline/build_dataset.py
+          python pipeline/analyze.py
+          python pipeline/summarize.py
+          python -m pytest pipeline/tests -q
+
+      - name: Open a pull request if anything changed
+        if: steps.build.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.branch.outputs.name }}
+        run: |
+          if git diff --quiet; then
+            echo "::notice::The rebuilt files are identical to main, so there is nothing to merge."
+            exit 0
+          fi
+          echo "Changed files:"
+          git diff --stat
+          # Only the generated website data and charts may change.
+          unexpected=$(git diff --name-only | grep -v -E '^(src/data/formd/(benchmarks|summary)\.json|docs/charts/.*\.png)$' || true)
+          if [ -n "$unexpected" ]; then
+            echo "::error::Unexpected files changed: $unexpected"
+            exit 1
+          fi
+          python pipeline/refresh_report.py > "$RUNNER_TEMP/pr-body.md"
+          end_date=$(python -c "import json; print(json.load(open('src/data/formd/summary.json'))['dataset_end_date'])")
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$BRANCH"
+          git add src/data/formd docs/charts
+          git commit -m "Refresh Form D data through $end_date"
+          git push origin "$BRANCH"
+          gh pr create --base main --head "$BRANCH" \
+            --title "Refresh Form D data through $end_date" \
+            --body-file "$RUNNER_TEMP/pr-body.md"

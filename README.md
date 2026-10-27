@@ -41,6 +41,8 @@ A Python pipeline (`pipeline/`) turns the SEC's quarterly Form D data sets into 
 3. **Measure** (`analyze.py`): Kaplan–Meier estimates of the share of rounds followed by another filing, month by month. Recent rounds count only for the months they've been watched.
 4. **Summarize** (`summarize.py`): headline counts and medians for the site. No dollar totals, because a few self-reported amounts (one filing claims $48 billion from a single investor) would dominate any sum.
 
+A GitHub Actions job checks twice a month for a new SEC quarter, reruns these steps, and opens a pull request with the new numbers; after it's merged, a second job updates the company-lookup database.
+
 The funnel runs from **365,344 filers to 67,516 startups**. Every rule, and where it can be wrong, is in [pipeline/DECISIONS.md](pipeline/DECISIONS.md).
 
 **Validation.** For 10 well-known startups (Ramp, Databricks, Figma, Instacart, Warby Parker, Peloton, Airbnb, Lemonade, Rippling, Plaid), **59 of 82** publicly reported rounds appear in the data. Some companies file every round (Ramp 11 of 11); others stop (Plaid 1 of 6). That matches research finding that most venture-backed rounds have no Form D, and it's why every rate here is a lower bound.
@@ -117,7 +119,6 @@ Details are in [pipeline/README.md](pipeline/README.md).
 
 ## Roadmap
 
-- **Quarterly refresh:** a scheduled job that rebuilds the data when the SEC posts a new quarter
 - Sector-specific risk thresholds, and a growth-decay model instead of constant compounding
 
 ---

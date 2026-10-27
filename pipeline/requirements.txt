@@ -1,5 +1,10 @@
-pandas>=2.2.0
-pyarrow>=15.0.0
-requests>=2.31.0
+# Exact versions, so the quarterly GitHub job gets the same numbers and
+# charts as a run on Meng's Mac. numpy and scipy come with pandas and
+# lifelines; they are pinned because the survival curves depend on them.
+pandas==3.0.6
+pyarrow==25.0.1
+requests==2.34.2
 lifelines==0.30.0
-matplotlib>=3.8.0
+matplotlib==3.11.2
+numpy==2.5.3
+scipy==1.18.1

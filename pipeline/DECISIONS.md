@@ -38,7 +38,7 @@ The field is the state or country on the issuer record, not `JURISDICTIONOFINC`.
 
 ## Event date
 
-The date of the event is `SALE_DATE` when that value parses as a date, is not after the day the script runs, and `YETTOOCCUR` is not true. Otherwise it is `FILING_DATE`. If neither date parses, the row is dropped. The column `event_date_source` records which one was used.
+The date of the event is `SALE_DATE` when that value parses as a date, is not after the newest `FILING_DATE` in the download, and `YETTOOCCUR` is not true. Otherwise it is `FILING_DATE`. If neither date parses, the row is dropped. The column `event_date_source` records which one was used.
 
 `SALE_DATE` is the date of first sale, which is closer to when the round actually happened than the day the notice was filed. It is rejected when it is in the future, because a future first-sale date is not an event yet. It is also rejected when `YETTOOCCUR` is true: the filer said the first sale has not happened, so a date in that field is not usable even if one is present. The filing date is the fallback so those companies are not thrown out.
 

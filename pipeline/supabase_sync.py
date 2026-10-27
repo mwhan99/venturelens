@@ -45,6 +45,10 @@ BENCHMARKS_PATH = ROOT / "src" / "data" / "formd" / "benchmarks.json"
 ENV_PATH = PIPELINE_DIR / ".env"
 
 BATCH_SIZE = 2000
+# The largest number a Postgres integer column holds. One filing claims
+# 100,000,000,000 investors; a count that large is a typo, so it's stored as
+# unknown instead of failing the upload.
+MAX_INTEGER = 2_147_483_647
 TIMEOUT_SECONDS = 120
 PRIMARY_KEYS = {
     "filers": ("cik",),
@@ -87,6 +91,12 @@ def clean(value):
         if isinstance(value, float) and math.isnan(value):
             return None
     return value
+
+
+def small_int(value):
+    """An integer that fits the database column, or None when it's missing or impossibly large."""
+    value = clean(value)
+    return None if value is None or int(value) > MAX_INTEGER else int(value)
 
 
 def benchmark_status(
@@ -149,10 +159,15 @@ def build_tables(
         # Only benchmark companies get a sector; for the rest it would suggest
         # they're counted in it.
         sector = venture_sector.get(cik)
+        # A couple of filers left the name blank on every filing; the
+        # database needs a name, so they get a clear stand-in.
+        name = clean(row["name"])
+        if not isinstance(name, str) or not name.strip():
+            name = f"Unnamed filer (SEC ID {cik})"
         filers.append(
             {
                 "cik": cik,
-                "name": clean(row["name"]),
+                "name": name,
                 "state": clean(row["state"]),
                 "industry": clean(row["industry"]),
                 "venture_sector": sector,
@@ -190,12 +205,12 @@ def build_tables(
             "event_date_source": clean(r.event_date_source),
             "amount_sold": clean(r.amount_sold),
             "amount_bucket": clean(r.amount_bucket),
-            "investor_count": clean(r.investor_count),
+            "investor_count": small_int(r.investor_count),
             "industry": clean(r.industry),
             "revenue_range": clean(r.revenue_range),
             "months_since_previous": clean(r.months_since_previous_round),
             "months_to_next": clean(r.months_to_next_round),
-            "n_offerings": clean(r.n_offerings),
+            "n_offerings": small_int(r.n_offerings),
             "synced_at": synced_at,
         }
         for r in rounds.itertuples(index=False)
@@ -214,6 +229,8 @@ def check_tables(tables: dict[str, list[dict[str, object]]], venture: pd.DataFra
     ciks = {f["cik"] for f in filers}
     if any(n["cik"] not in ciks for n in tables["filer_names"]):
         raise SystemExit("ERROR: a name belongs to a CIK that isn't a filer.")
+    if any(not f["name"] for f in filers):
+        raise SystemExit("ERROR: a filer has no name; the database requires one.")
 
 
 def load_inputs():

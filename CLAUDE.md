@@ -139,7 +139,8 @@ today.
 | `pipeline/tests/` | pytest tests for `summarize.py`, the funnel and the likely-startup rules in `build_dataset.py`, on tiny hand-made datasets. |
 | `pipeline/requirements-dev.txt` | `requirements.txt` plus pytest 9.1.1. |
 | `supabase/schema.sql` | The company-lookup database (step 10): `filers` (one row per Form D filer, with `benchmark_status`: benchmark, likely_non_startup, not_young, non_venture_industry, no_completed_round or other_legal_form, plus the reason in words), `filer_names` (every filed name plus brand aliases, with a trigram index for fuzzy search), `rounds` (all 247,406), `sync_info`, and the `search_filers(query)` function. Read-only for everyone except the secret key. Run it in the Supabase SQL Editor; safe to run again. |
-| `pipeline/supabase_sync.py` | Uploads the lookup tables from `rounds.parquet`, `venture_rounds.parquet`, `likely_non_startups.csv` and `brand_aliases.csv`. `--dry-run` builds and counts without sending. A real run upserts in batches of 2,000, deletes rows left from an older upload, then counts the rows in Supabase and fails if they differ. Reads `SUPABASE_URL` and `SUPABASE_SECRET_KEY` from the environment or `pipeline/.env`. |
+| `pipeline/supabase_sync.py` | Uploads the lookup tables from `rounds.parquet`, `venture_rounds.parquet`, `likely_non_startups.csv` and `brand_aliases.csv`. `--dry-run` builds and counts without sending. A real run upserts in batches of 2,000, deletes rows left from an older upload, then counts the rows in Supabase and fails if they differ. Reads `SUPABASE_URL` and `SUPABASE_SECRET_KEY` from the environment or `pipeline/.env`. Two data quirks it handles: two filers left their name blank on every filing (they get “Unnamed filer (SEC ID …)”), and one filing claims 100,000,000,000 investors (counts too big for the column are stored as unknown). Takes about 3 minutes. |
+| Supabase project | **venturelens** (project ID `eqcugdechrvgyzvkoard`, East US / Ohio), separate from HiddenHire's project (`purlgbuhx…`). The free plan allows two projects; Meng removed an unused starter project to make room. |
 | `pipeline/brand_aliases.csv` | Brand names for companies that file under a legal name (Instacart → Maplebear Inc., Warby Parker → JAND, Rippling → People Center), so the search finds them. The sync stops if a listed CIK isn't a filer. |
 | `.github/workflows/supabase-keep-awake.yml` | Reads one row from Supabase every day (14:17 UTC) so the free project never pauses. Uses `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` repository secrets; if they're missing it warns and passes. |
 | `pipeline/DECISIONS.md` | Why each cleaning rule exists and where it can be wrong. |
@@ -387,10 +388,11 @@ setup.
     Write `pipeline/supabase_sync.py` to load `rounds.parquet` into it. Add a
     daily "ping" GitHub job so the free project is never paused. *Check:*
     the row counts in Supabase match section 2 (247,406 rounds).
-    *(Code written: `supabase/schema.sql`, `pipeline/supabase_sync.py`, the
-    keep-awake job. The dry run gives 166,601 filers, 172,445 names and
-    247,406 rounds, with exactly 67,516 marked benchmark. Waiting for Meng to
-    create the project and add the keys.)*
+    *(Done, Oct 27, 2026: data loaded and the counts match exactly (166,601
+    filers, 172,445 names, 247,406 rounds; 67,516 marked benchmark). With
+    the publishable key: every table reads, every write is refused, and
+    searches take about 0.2 s (“Instacart” finds Maplebear, “Databriks”
+    finds Databricks). The keep-awake job is checked once this is merged.)*
 11. **Lookup pages** (`/companies` and `/companies/[cik]`). *Check:*
     searching "Figma" shows Figma, Inc.'s rounds; searching "Stripe" shows
     Stripe, Inc. with a note explaining why it isn't in the benchmark;

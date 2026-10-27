@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from supabase_sync import base_url, benchmark_status, build_tables, check_tables, clean, headers, normalize_name
+from supabase_sync import base_url, benchmark_status, build_tables, check_tables, clean, headers, normalize_name, small_int
 
 SYNCED = "2026-10-27T00:00:00+00:00"
 
@@ -70,6 +70,25 @@ def test_rounds_are_json_safe():
     assert all(r["synced_at"] == SYNCED for r in tables["rounds"])
 
 
+def test_a_filer_with_no_name_gets_a_stand_in():
+    rounds = make_rounds()
+    rounds["entity_name"] = rounds["entity_name"].astype("string")
+    rounds.loc[rounds["cik"] == "D", "entity_name"] = pd.NA
+    tables = build_tables(rounds, VENTURE, NON_STARTUPS, ALIASES, SYNCED)
+    by = {f["cik"]: f for f in tables["filers"]}
+    assert by["D"]["name"] == "Unnamed filer (SEC ID D)"
+    assert not any(n["cik"] == "D" for n in tables["filer_names"])  # nothing blank to search
+    check_tables(tables, VENTURE)
+
+
+def test_an_impossible_investor_count_is_stored_as_unknown():
+    rounds = make_rounds()
+    rounds.loc[0, "investor_count"] = 100_000_000_000
+    tables = build_tables(rounds, VENTURE, NON_STARTUPS, ALIASES, SYNCED)
+    assert tables["rounds"][0]["investor_count"] is None
+    assert tables["rounds"][1]["investor_count"] == 9
+
+
 def test_an_alias_for_an_unknown_company_stops_the_sync():
     with pytest.raises(SystemExit):
         build_tables(make_rounds(), VENTURE, NON_STARTUPS, pd.DataFrame({"cik": ["ZZZ"], "brand": ["Ghost"]}), SYNCED)
@@ -100,3 +119,4 @@ def test_url_and_key_handling():
     assert "Authorization" not in headers("sb_secret_123")
     assert headers("eyJhbGc")["Authorization"] == "Bearer eyJhbGc"
     assert clean(float("nan")) is None and clean(pd.NA) is None
+    assert small_int(2_147_483_647) == 2_147_483_647 and small_int(2_147_483_648) is None and small_int(None) is None

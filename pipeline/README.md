@@ -31,6 +31,7 @@ python pipeline/download.py
 python pipeline/build_dataset.py
 python pipeline/analyze.py
 python pipeline/summarize.py
+python pipeline/supabase_sync.py   # optional: upload the company lookup (needs pipeline/.env)
 ```
 
 `download.py` reads the zip links from the SEC Form D data-sets page, so it picks up whichever quarters are posted (the path of the zip changes by year). It saves each zip under `pipeline/data/raw/`, skips a file that is already there, and unzips that quarter into its own folder. It waits 0.2 seconds between SEC requests.
@@ -41,7 +42,9 @@ python pipeline/summarize.py
 
 `summarize.py` reads `venture_rounds.parquet`, `funnel.json`, and the dataset end date in `benchmarks.json`, so it runs last. It writes `src/data/formd/summary.json` for the website: headline counts, the funnel, rounds and median round size per year (the year that contains the end date is marked partial), rounds by sector, amount bucket, the top 10 states, the cleaning rule settings from `build_dataset.py`, and how many companies and rounds each likely-startup rule removed (from `likely_non_startups.csv`). It reports medians and counts only, never dollar totals, because a few self-reported amounts (one filing claims $48 billion from a single investor) would dominate any sum.
 
-Downloaded zips, extracted files, the virtualenv, and the generated dataset are gitignored.
+`supabase_sync.py` uploads every filer, name and round to the Supabase database behind the website's company lookup (tables in `supabase/schema.sql`), marking whether each company is in the benchmark and why not. It needs `SUPABASE_URL` and `SUPABASE_SECRET_KEY` in `pipeline/.env` or the environment. Run it with `--dry-run` first to build and count without sending. After uploading, it counts the rows in Supabase and stops with an error if they don't match.
+
+Downloaded zips, extracted files, the virtualenv, the generated dataset and `pipeline/.env` are gitignored.
 
 ## Outputs
 

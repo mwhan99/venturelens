@@ -1,0 +1,42 @@
+# Free Supabase projects pause after about a week with no activity, which
+# would break the company lookup. This reads one row every day to keep the
+# project awake. It uses the read-only publishable key, never the secret key.
+#
+# Needs two repository secrets (Settings -> Secrets and variables -> Actions):
+#   SUPABASE_URL              https://<project>.supabase.co
+#   SUPABASE_PUBLISHABLE_KEY  sb_publishable_...
+
+name: Supabase keep-awake
+
+on:
+  schedule:
+    - cron: "17 14 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  keep-awake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read one row from Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "::warning::Supabase secrets are not set, so nothing was checked."
+            exit 0
+          fi
+          # Accept the URL with or without /rest/v1/, like pipeline/supabase_sync.py.
+          base="${SUPABASE_URL%/}"
+          base="${base%/rest/v1}"
+          status=$(curl --silent --output /dev/null --write-out "%{http_code}" \
+            --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            "$base/rest/v1/sync_info?select=dataset_end_date&limit=1")
+          echo "Supabase answered with status $status."
+          if [ "$status" != "200" ]; then
+            exit 1
+          fi

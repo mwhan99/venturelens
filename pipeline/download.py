@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import argparse
+import json
 import os
 import re
 import sys
@@ -21,6 +23,7 @@ except ImportError:
         "  pipeline/.venv/bin/pip install -r pipeline/requirements.txt"
     )
 
+BENCHMARKS_PATH = Path(__file__).resolve().parents[1] / "src" / "data" / "formd" / "benchmarks.json"
 SOURCE_PAGE = "https://www.sec.gov/data-research/sec-markets-data/form-d-data-sets"
 RAW_DIR = Path(__file__).resolve().parent / "data" / "raw"
 # SEC fair-access policy asks filers to stay at or below 10 requests per second.
@@ -174,7 +177,51 @@ def download_one(session: requests.Session, url: str) -> str:
     return status
 
 
+def quarter_from_url(url: str) -> tuple[int, int] | None:
+    """(2026, 4) for .../2026q4_d.zip; None if the name has no quarter."""
+    match = QUARTER_IN_NAME.search(url.rsplit("/", 1)[-1])
+    return (int(match.group(1)), int(match.group(2))) if match else None
+
+
+def quarter_of_date(iso_date: str) -> tuple[int, int]:
+    """(2026, 3) for 2026-09-30."""
+    year, month = int(iso_date[:4]), int(iso_date[5:7])
+    return (year, (month - 1) // 3 + 1)
+
+
+def newer_quarters(urls: list[str], end_date: str) -> list[str]:
+    """Quarters on the SEC page that end after the data the website shows, e.g. ["2026q4"]."""
+    current = quarter_of_date(end_date)
+    found = {q for q in map(quarter_from_url, urls) if q is not None and q > current}
+    return [f"{y}q{q}" for y, q in sorted(found)]
+
+
+def check_for_new_quarter(session: requests.Session) -> int:
+    """Print whether the SEC has posted a quarter the website doesn't have yet.
+
+    In GitHub Actions it also writes new_quarter=true/false and quarter=2026q4
+    to $GITHUB_OUTPUT, so the refresh job can skip the rest when nothing is new.
+    """
+    end_date = json.loads(BENCHMARKS_PATH.read_text(encoding="utf-8"))["dataset_end_date"]
+    newer = newer_quarters(scrape_zip_urls(session), end_date)
+    if newer:
+        print(f"New on the SEC page: {', '.join(newer)} (the website has data through {end_date}).")
+    else:
+        print(f"Nothing new: the website already has every posted quarter (data through {end_date}).")
+    output = os.environ.get("GITHUB_OUTPUT")
+    if output:
+        with open(output, "a", encoding="utf-8") as handle:
+            handle.write(f"new_quarter={'true' if newer else 'false'}\n")
+            handle.write(f"quarter={newer[-1] if newer else ''}\n")
+    return 0
+
+
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument(
+        "--check", action="store_true", help="only report whether a quarter newer than the website's data is posted"
+    )
+    args = parser.parse_args()
     user_agent = require_user_agent()
     RAW_DIR.mkdir(parents=True, exist_ok=True)
     session = requests.Session()
@@ -185,6 +232,8 @@ def main() -> int:
         }
     )
     print("Using SEC_USER_AGENT from the environment.")
+    if args.check:
+        return check_for_new_quarter(session)
     urls = scrape_zip_urls(session)
     downloaded = 0
     skipped = 0

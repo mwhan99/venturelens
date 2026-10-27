@@ -1,0 +1,66 @@
+# Updates the company lookup in Supabase after new website data reaches main
+# (normally by merging a quarterly-refresh pull request), so the lookup and
+# the site always show the same quarter. It rebuilds the data from the SEC,
+# stops if the rebuild doesn't match what is on main, then uploads.
+#
+# This is the only workflow that uses the Supabase secret key.
+#
+# Needs repository secrets (Settings -> Secrets and variables -> Actions):
+#   SEC_USER_AGENT       "Name email@example.com"
+#   SUPABASE_URL         https://<project>.supabase.co
+#   SUPABASE_SECRET_KEY  sb_secret_...
+
+name: Supabase sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - src/data/formd/benchmarks.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: pipeline/requirements*.txt
+
+      - name: Install the pipeline packages
+        run: pip install -r pipeline/requirements.txt
+
+      - name: Rebuild the data
+        env:
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+        run: |
+          python pipeline/download.py
+          python pipeline/build_dataset.py
+          python pipeline/analyze.py
+          python pipeline/summarize.py
+
+      - name: Check the rebuild matches the website
+        run: |
+          if ! git diff --quiet -- src/data/formd; then
+            git diff --stat
+            echo "::error::The rebuilt data differs from main (the SEC may have posted another quarter). Run the quarterly refresh first."
+            exit 1
+          fi
+
+      - name: Upload to Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: python pipeline/supabase_sync.py

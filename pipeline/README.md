@@ -44,6 +44,12 @@ python pipeline/supabase_sync.py   # optional: upload the company lookup (needs 
 
 `supabase_sync.py` uploads every filer, name and round to the Supabase database behind the website's company lookup (tables in `supabase/schema.sql`), marking whether each company is in the benchmark and why not. It needs `SUPABASE_URL` and `SUPABASE_SECRET_KEY` in `pipeline/.env` or the environment. Run it with `--dry-run` first to build and count without sending. After uploading, it counts the rows in Supabase and stops with an error if they don't match.
 
+`refresh_report.py` compares the rebuilt `summary.json` and `benchmarks.json` with the committed ones and prints the headline numbers before and after, plus every hand-typed line in the README, FINDINGS and CLAUDE.md that still shows an old number.
+
+### Automatic refresh
+
+`.github/workflows/quarterly-refresh.yml` runs `python pipeline/download.py --check` on the 1st and 15th of each month. When the SEC has posted a quarter newer than `benchmarks.json`, it runs the four scripts and the tests, and opens a pull request with the new website data and charts. Merging that pull request starts `.github/workflows/supabase-sync.yml`, which rebuilds the same data and runs `supabase_sync.py`.
+
 Downloaded zips, extracted files, the virtualenv, the generated dataset and `pipeline/.env` are gitignored.
 
 ## Outputs

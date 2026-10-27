@@ -636,8 +636,11 @@ def apply_cleaning_rules(
     filings["sale_date"] = parse_dates(filings["sale_date_raw"])
     filings["filing_date"] = parse_dates(filings["filing_date_raw"])
     yet_to_occur = parse_bool(filings["yet_to_occur_raw"])
-    today = pd.Timestamp.today().normalize()
-    sale_usable = filings["sale_date"].notna() & (filings["sale_date"] <= today) & ~yet_to_occur
+    # A sale date after the newest filing in the download hadn't happened yet when
+    # the data was published. Comparing with that date, not the day the script
+    # runs, means rebuilding the same quarters always gives the same rounds.
+    cutoff = filings["filing_date"].max().normalize()
+    sale_usable = filings["sale_date"].notna() & (filings["sale_date"] <= cutoff) & ~yet_to_occur
     filings["event_date"] = filings["sale_date"].where(sale_usable, filings["filing_date"])
     filings["event_date_source"] = pd.Series(pd.NA, index=filings.index, dtype="object")
     filings.loc[sale_usable, "event_date_source"] = "SALE_DATE"
@@ -656,7 +659,7 @@ def apply_cleaning_rules(
     report.note(
         f"Event date source among kept filings: SALE_DATE {sale_n:,} ({sale_share:.1f}%), "
         f"FILING_DATE {filing_n:,} ({filing_share:.1f}%). "
-        f"SALE_DATE was skipped when it was missing, after {today.date()}, or YETTOOCCUR was true "
+        f"SALE_DATE was skipped when it was missing, after the newest filing date ({cutoff.date()}), or YETTOOCCUR was true "
         f"({int(yet_to_occur.sum()):,} filings had YETTOOCCUR true before this filter)."
     )
     date_stats = {

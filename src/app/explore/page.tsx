@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { Explorer, ExplorerFallback } from "@/components/explore/Explorer";
 import { DATASET_END, MIN_GAP_MONTHS, getSegments } from "@/lib/formd/explorer";
@@ -56,11 +57,11 @@ export default function ExplorePage() {
           </li>
         </ul>
         <p className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm font-semibold">
+          <Link className="text-brand hover:underline" href="/methodology#odds">
+            How the odds are measured →
+          </Link>
           <a className="text-brand hover:underline" href={`${REPO}/blob/main/pipeline/FINDINGS.md`}>
             Full findings →
-          </a>
-          <a className="text-brand hover:underline" href={`${REPO}/blob/main/pipeline/DECISIONS.md`}>
-            How the data is cleaned →
           </a>
         </p>
       </section>

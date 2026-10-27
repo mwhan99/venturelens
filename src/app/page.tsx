@@ -4,8 +4,6 @@ import { OddsCurve, SectorBars, YearBars } from "@/components/charts/Charts";
 import { OddsPicker } from "@/components/home/OddsPicker";
 import { count, findings, getHomeData, getOddsTable, longDate, money, pct } from "@/lib/formd/summary";
 
-const REPO = "https://github.com/mwhan99/venturelens";
-
 function Card({ children, className = "", id }: { children: ReactNode; className?: string; id?: string }) {
   return (
     <section id={id} className={`min-w-0 rounded-[18px] border border-line bg-card p-6 sm:rounded-[22px] sm:p-7 ${className}`}>
@@ -153,9 +151,9 @@ export default function HomePage() {
               </li>
             ))}
           </ol>
-          <a className="mt-4 inline-block text-sm font-semibold text-brand hover:underline" href={`${REPO}/blob/main/pipeline/DECISIONS.md`}>
+          <Link className="mt-4 inline-block text-sm font-semibold text-brand hover:underline" href="/methodology#funnel">
             How each step works →
-          </a>
+          </Link>
         </Card>
       </div>
 

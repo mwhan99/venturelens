@@ -21,10 +21,19 @@ from pathlib import Path
 
 import pandas as pd
 
+from build_dataset import (
+    ESTABLISHED_REVENUE_RANGE,
+    ROUND_MERGE_WINDOW_DAYS,
+    STARTUP_FIRST_ROUND_ON_OR_AFTER,
+    YOUNG_COMPANY_YEARS,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 PROCESSED_DIR = ROOT / "pipeline" / "data" / "processed"
 ROUNDS_PATH = PROCESSED_DIR / "venture_rounds.parquet"
 FUNNEL_PATH = PROCESSED_DIR / "funnel.json"
+NON_STARTUPS_PATH = PROCESSED_DIR / "likely_non_startups.csv"
+EXCLUSION_RULE_ORDER = ("vehicle_name", "established_revenue", "reviewed")
 BENCHMARKS_PATH = ROOT / "src" / "data" / "formd" / "benchmarks.json"
 SUMMARY_PATH = ROOT / "src" / "data" / "formd" / "summary.json"
 
@@ -150,8 +159,33 @@ def funnel_with_shares(funnel: list[dict[str, object]]) -> list[dict[str, object
     return records
 
 
+def cleaning_rules() -> dict[str, object]:
+    """The rule settings from build_dataset.py, so the website never types them by hand."""
+    return {
+        "round_merge_window_days": ROUND_MERGE_WINDOW_DAYS,
+        "startup_first_round_on_or_after": STARTUP_FIRST_ROUND_ON_OR_AFTER.date().isoformat(),
+        "young_company_years": YOUNG_COMPANY_YEARS,
+        "established_revenue_range": ESTABLISHED_REVENUE_RANGE,
+    }
+
+
+def exclusion_counts(non_startups: pd.DataFrame | None) -> list[dict[str, object]]:
+    """Companies and rounds dropped by each likely-startup rule (likely_non_startups.csv)."""
+    if non_startups is None or non_startups.empty:
+        return []
+    grouped = non_startups.groupby("rule").agg(companies=("cik", "nunique"), rounds=("rounds", "sum"))
+    return [
+        {"rule": rule, "companies": int(grouped.loc[rule, "companies"]), "rounds": int(grouped.loc[rule, "rounds"])}
+        for rule in EXCLUSION_RULE_ORDER
+        if rule in grouped.index
+    ]
+
+
 def build_summary(
-    rounds: pd.DataFrame, funnel: list[dict[str, object]], end_date: pd.Timestamp
+    rounds: pd.DataFrame,
+    funnel: list[dict[str, object]],
+    end_date: pd.Timestamp,
+    non_startups: pd.DataFrame | None = None,
 ) -> dict[str, object]:
     return {
         "dataset_end_date": end_date.date().isoformat(),
@@ -166,13 +200,16 @@ def build_summary(
         "by_sector": by_sector(rounds),
         "by_amount_bucket": by_amount_bucket(rounds),
         "top_states": top_states(rounds),
+        "rules": cleaning_rules(),
+        "exclusions": exclusion_counts(non_startups),
     }
 
 
-def load_inputs() -> tuple[pd.DataFrame, list[dict[str, object]], pd.Timestamp]:
+def load_inputs() -> tuple[pd.DataFrame, list[dict[str, object]], pd.Timestamp, pd.DataFrame]:
     for path, script in (
         (ROUNDS_PATH, "pipeline/build_dataset.py"),
         (FUNNEL_PATH, "pipeline/build_dataset.py"),
+        (NON_STARTUPS_PATH, "pipeline/build_dataset.py"),
         (BENCHMARKS_PATH, "pipeline/analyze.py"),
     ):
         if not path.exists():
@@ -181,7 +218,8 @@ def load_inputs() -> tuple[pd.DataFrame, list[dict[str, object]], pd.Timestamp]:
     rounds["event_date"] = pd.to_datetime(rounds["event_date"])
     funnel = json.loads(FUNNEL_PATH.read_text(encoding="utf-8"))
     end_date = pd.Timestamp(json.loads(BENCHMARKS_PATH.read_text(encoding="utf-8"))["dataset_end_date"])
-    return rounds, funnel, end_date
+    non_startups = pd.read_csv(NON_STARTUPS_PATH, dtype={"cik": str})
+    return rounds, funnel, end_date, non_startups
 
 
 def check_consistency(summary: dict[str, object], funnel: list[dict[str, object]]) -> None:
@@ -196,8 +234,8 @@ def check_consistency(summary: dict[str, object], funnel: list[dict[str, object]
 
 
 def main() -> int:
-    rounds, funnel, end_date = load_inputs()
-    summary = build_summary(rounds, funnel, end_date)
+    rounds, funnel, end_date, non_startups = load_inputs()
+    summary = build_summary(rounds, funnel, end_date, non_startups)
     check_consistency(summary, funnel)
     SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
     SUMMARY_PATH.write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

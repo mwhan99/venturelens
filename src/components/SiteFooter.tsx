@@ -1,3 +1,4 @@
+import Link from "next/link";
 import benchmarks from "@/data/formd/benchmarks.json";
 import { longDate } from "@/lib/formd/summary";
 
@@ -13,11 +14,11 @@ export function SiteFooter() {
           appear. Demo companies in the calculator are simulated.
         </p>
         <p className="flex shrink-0 gap-4">
+          <Link className="hover:text-ink" href="/methodology">
+            Methodology
+          </Link>
           <a className="hover:text-ink" href={`${REPO}/blob/main/pipeline/FINDINGS.md`}>
             Findings
-          </a>
-          <a className="hover:text-ink" href={`${REPO}/blob/main/pipeline/DECISIONS.md`}>
-            How the data is cleaned
           </a>
           <a className="hover:text-ink" href={REPO}>
             GitHub

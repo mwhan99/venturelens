@@ -1,6 +1,6 @@
 # VentureLens
 
-**Startup screening backed by real data: runway, returns, and risk for any startup, benchmarked against 114,695 funding rounds from SEC Form D filings.**
+**Startup screening backed by real data: runway, returns, and risk for any startup, benchmarked against 113,436 funding rounds from SEC Form D filings.**
 
 🔗 **Live demo:** https://venturelens-chi.vercel.app
 Demo companies are simulated (private startups' financials aren't public); the financing benchmarks come from real SEC filings.
@@ -63,7 +63,7 @@ Flags are converted into risk tags (e.g., `runway-risk`, `high-burn`, `weak-capi
 
 ## Data
 
-VentureLens financing benchmarks come from public SEC Form D filings. The pipeline in `pipeline/` downloads the quarterly data sets, drops pooled funds and non-US issuers, keeps young operating companies in venture-relevant industries, and merges offerings within 90 days into one round. Of 365,344 filers, 68,441 are venture startups in the benchmark file, covering 114,695 completed rounds. A later Form D filing is a lower bound on fundraising, because SAFEs, notes, and some rounds never appear. The results are written up in [pipeline/FINDINGS.md](pipeline/FINDINGS.md). The cleaning rules are in [pipeline/DECISIONS.md](pipeline/DECISIONS.md).
+VentureLens financing benchmarks come from public SEC Form D filings. The pipeline in `pipeline/` downloads the quarterly data sets, drops pooled funds and non-US issuers, keeps young operating companies in venture-relevant industries, drops buyout, SPAC and fund vehicles and established businesses, and merges offerings within 90 days into one round. Of 365,344 filers, 67,516 are venture startups in the benchmark file, covering 113,436 completed rounds. A check against 10 well-known startups found about 59 of their 82 publicly reported rounds. A later Form D filing is a lower bound on fundraising, because SAFEs, notes, and some rounds never appear. The results are written up in [pipeline/FINDINGS.md](pipeline/FINDINGS.md). The cleaning rules are in [pipeline/DECISIONS.md](pipeline/DECISIONS.md).
 
 ![Kaplan–Meier curves by sector](docs/charts/km_by_sector.png)
 

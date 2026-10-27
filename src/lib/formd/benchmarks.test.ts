@@ -29,15 +29,15 @@ describe("Form D benchmark lookup", () => {
     expect(benchmark).toMatchObject({
       sector: "FinTech",
       bucket: "$1–5M",
-      nRounds: 965,
+      nRounds: 949,
       lookupMonths: 16,
-      probabilityWithinRunway: 0.232,
-      conditionalMedianMonths: 13.08,
+      probabilityWithinRunway: 0.231,
+      conditionalMedianMonths: 13.21,
       tone: "neutral",
       usedFallback: false,
     });
     expect(formatFinancingBenchmark(benchmark).headline).toBe(
-      "Of 965 comparable FinTech, $1–5M rounds, 23% were followed by another Form D filing within 16 months.",
+      "Of 949 comparable FinTech, $1–5M rounds, 23% were followed by another Form D filing within 16 months.",
     );
   });
 

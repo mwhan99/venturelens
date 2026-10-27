@@ -2,9 +2,9 @@
   "dataset_end_date": "2026-09-30",
   "definition": "Completed venture rounds: US startups in venture-relevant sectors, offerings within 90 days merged into one round, amount sold greater than zero. Amounts are what the issuer reported on Form D.",
   "headline": {
-    "rounds": 114695,
-    "companies": 68441,
-    "median_amount_sold": 1440000,
+    "rounds": 113436,
+    "companies": 67516,
+    "median_amount_sold": 1400000,
     "states": 51,
     "first_year": 2010,
     "last_year": 2026
@@ -54,264 +54,272 @@
       "step": "Completed rounds",
       "companies": 68441,
       "rows": 114695,
-      "row_unit": "venture rounds",
+      "row_unit": "rounds",
       "share_of_previous": 0.8765,
       "share_of_all": 0.1873
+    },
+    {
+      "step": "Likely startups",
+      "companies": 67516,
+      "rows": 113436,
+      "row_unit": "venture rounds",
+      "share_of_previous": 0.9865,
+      "share_of_all": 0.1848
     }
   ],
   "by_year": [
     {
       "year": 2010,
-      "rounds": 4104,
-      "companies": 3862,
-      "median_amount_sold": 900000,
+      "rounds": 4057,
+      "companies": 3815,
+      "median_amount_sold": 875000,
       "rounds_by_sector": {
-        "Technology": 1267,
-        "Other/Unclassified": 1197,
-        "HealthTech/Biotech": 664,
-        "Consumer": 575,
-        "FinTech": 201,
-        "Energy/ClimateTech": 200
+        "Technology": 1260,
+        "Other/Unclassified": 1180,
+        "HealthTech/Biotech": 660,
+        "Consumer": 559,
+        "FinTech": 200,
+        "Energy/ClimateTech": 198
       },
       "partial": false
     },
     {
       "year": 2011,
-      "rounds": 4690,
-      "companies": 4437,
-      "median_amount_sold": 800000,
+      "rounds": 4643,
+      "companies": 4391,
+      "median_amount_sold": 781412,
       "rounds_by_sector": {
-        "Technology": 1625,
-        "Other/Unclassified": 1335,
-        "HealthTech/Biotech": 704,
-        "Consumer": 679,
-        "FinTech": 169,
+        "Technology": 1616,
+        "Other/Unclassified": 1318,
+        "HealthTech/Biotech": 702,
+        "Consumer": 663,
+        "FinTech": 166,
         "Energy/ClimateTech": 178
       },
       "partial": false
     },
     {
       "year": 2012,
-      "rounds": 5217,
-      "companies": 4917,
-      "median_amount_sold": 899999,
+      "rounds": 5166,
+      "companies": 4869,
+      "median_amount_sold": 885374,
       "rounds_by_sector": {
-        "Technology": 1955,
-        "Other/Unclassified": 1482,
-        "HealthTech/Biotech": 766,
-        "Consumer": 665,
-        "FinTech": 165,
-        "Energy/ClimateTech": 184
+        "Technology": 1946,
+        "Other/Unclassified": 1462,
+        "HealthTech/Biotech": 765,
+        "Consumer": 648,
+        "FinTech": 164,
+        "Energy/ClimateTech": 181
       },
       "partial": false
     },
     {
       "year": 2013,
-      "rounds": 5967,
-      "companies": 5600,
-      "median_amount_sold": 935000,
+      "rounds": 5915,
+      "companies": 5553,
+      "median_amount_sold": 914996,
       "rounds_by_sector": {
-        "Technology": 2243,
-        "Other/Unclassified": 1754,
-        "HealthTech/Biotech": 878,
-        "Consumer": 763,
-        "FinTech": 166,
-        "Energy/ClimateTech": 163
+        "Technology": 2236,
+        "Other/Unclassified": 1727,
+        "HealthTech/Biotech": 876,
+        "Consumer": 753,
+        "FinTech": 165,
+        "Energy/ClimateTech": 158
       },
       "partial": false
     },
     {
       "year": 2014,
-      "rounds": 6849,
-      "companies": 6418,
+      "rounds": 6797,
+      "companies": 6367,
       "median_amount_sold": 1000000,
       "rounds_by_sector": {
-        "Technology": 2595,
-        "Other/Unclassified": 1920,
-        "HealthTech/Biotech": 1037,
-        "Consumer": 909,
-        "FinTech": 210,
-        "Energy/ClimateTech": 178
+        "Technology": 2592,
+        "Other/Unclassified": 1895,
+        "HealthTech/Biotech": 1029,
+        "Consumer": 897,
+        "FinTech": 209,
+        "Energy/ClimateTech": 175
       },
       "partial": false
     },
     {
       "year": 2015,
-      "rounds": 7456,
-      "companies": 6997,
-      "median_amount_sold": 1067100,
+      "rounds": 7380,
+      "companies": 6925,
+      "median_amount_sold": 1050278,
       "rounds_by_sector": {
-        "Technology": 2969,
-        "Other/Unclassified": 2098,
-        "HealthTech/Biotech": 1143,
-        "Consumer": 894,
-        "FinTech": 208,
-        "Energy/ClimateTech": 144
+        "Technology": 2955,
+        "Other/Unclassified": 2054,
+        "HealthTech/Biotech": 1138,
+        "Consumer": 883,
+        "FinTech": 207,
+        "Energy/ClimateTech": 143
       },
       "partial": false
     },
     {
       "year": 2016,
-      "rounds": 7328,
-      "companies": 6862,
-      "median_amount_sold": 1065000,
+      "rounds": 7269,
+      "companies": 6804,
+      "median_amount_sold": 1050000,
       "rounds_by_sector": {
-        "Technology": 2882,
-        "Other/Unclassified": 2009,
-        "HealthTech/Biotech": 1226,
-        "Consumer": 885,
+        "Technology": 2873,
+        "Other/Unclassified": 1982,
+        "HealthTech/Biotech": 1215,
+        "Consumer": 874,
         "FinTech": 215,
-        "Energy/ClimateTech": 111
+        "Energy/ClimateTech": 110
       },
       "partial": false
     },
     {
       "year": 2017,
-      "rounds": 7523,
-      "companies": 7079,
-      "median_amount_sold": 1400000,
+      "rounds": 7459,
+      "companies": 7017,
+      "median_amount_sold": 1370612,
       "rounds_by_sector": {
-        "Technology": 2862,
-        "Other/Unclassified": 2138,
-        "HealthTech/Biotech": 1267,
-        "Consumer": 900,
-        "FinTech": 227,
+        "Technology": 2854,
+        "Other/Unclassified": 2100,
+        "HealthTech/Biotech": 1262,
+        "Consumer": 891,
+        "FinTech": 223,
         "Energy/ClimateTech": 129
       },
       "partial": false
     },
     {
       "year": 2018,
-      "rounds": 8054,
-      "companies": 7546,
-      "median_amount_sold": 1500000,
+      "rounds": 7973,
+      "companies": 7470,
+      "median_amount_sold": 1487000,
       "rounds_by_sector": {
-        "Technology": 3101,
-        "Other/Unclassified": 2389,
-        "HealthTech/Biotech": 1259,
-        "Consumer": 929,
-        "FinTech": 250,
-        "Energy/ClimateTech": 126
+        "Technology": 3088,
+        "Other/Unclassified": 2343,
+        "HealthTech/Biotech": 1253,
+        "Consumer": 919,
+        "FinTech": 247,
+        "Energy/ClimateTech": 123
       },
       "partial": false
     },
     {
       "year": 2019,
-      "rounds": 7890,
-      "companies": 7449,
-      "median_amount_sold": 1500268,
+      "rounds": 7800,
+      "companies": 7368,
+      "median_amount_sold": 1500000,
       "rounds_by_sector": {
-        "Technology": 2929,
-        "Other/Unclassified": 2352,
-        "HealthTech/Biotech": 1329,
-        "Consumer": 913,
-        "FinTech": 231,
+        "Technology": 2924,
+        "Other/Unclassified": 2297,
+        "HealthTech/Biotech": 1318,
+        "Consumer": 898,
+        "FinTech": 227,
         "Energy/ClimateTech": 136
       },
       "partial": false
     },
     {
       "year": 2020,
-      "rounds": 7150,
-      "companies": 6712,
-      "median_amount_sold": 1999663,
+      "rounds": 7063,
+      "companies": 6630,
+      "median_amount_sold": 1915000,
       "rounds_by_sector": {
-        "Technology": 2743,
-        "Other/Unclassified": 2080,
-        "HealthTech/Biotech": 1283,
-        "Consumer": 680,
-        "FinTech": 248,
+        "Technology": 2727,
+        "Other/Unclassified": 2040,
+        "HealthTech/Biotech": 1270,
+        "Consumer": 670,
+        "FinTech": 240,
         "Energy/ClimateTech": 116
       },
       "partial": false
     },
     {
       "year": 2021,
-      "rounds": 9548,
-      "companies": 8886,
-      "median_amount_sold": 2762292,
+      "rounds": 9425,
+      "companies": 8775,
+      "median_amount_sold": 2691012,
       "rounds_by_sector": {
-        "Technology": 3701,
-        "Other/Unclassified": 2973,
-        "HealthTech/Biotech": 1478,
-        "Consumer": 877,
-        "FinTech": 335,
-        "Energy/ClimateTech": 184
+        "Technology": 3686,
+        "Other/Unclassified": 2903,
+        "HealthTech/Biotech": 1467,
+        "Consumer": 863,
+        "FinTech": 324,
+        "Energy/ClimateTech": 182
       },
       "partial": false
     },
     {
       "year": 2022,
-      "rounds": 8391,
-      "companies": 7988,
-      "median_amount_sold": 2175000,
+      "rounds": 8294,
+      "companies": 7901,
+      "median_amount_sold": 2125500,
       "rounds_by_sector": {
-        "Technology": 3219,
-        "Other/Unclassified": 2723,
-        "HealthTech/Biotech": 1276,
-        "Consumer": 727,
-        "FinTech": 268,
-        "Energy/ClimateTech": 178
+        "Technology": 3196,
+        "Other/Unclassified": 2678,
+        "HealthTech/Biotech": 1263,
+        "Consumer": 720,
+        "FinTech": 260,
+        "Energy/ClimateTech": 177
       },
       "partial": false
     },
     {
       "year": 2023,
-      "rounds": 6966,
-      "companies": 6610,
-      "median_amount_sold": 1950000,
+      "rounds": 6865,
+      "companies": 6520,
+      "median_amount_sold": 1891290,
       "rounds_by_sector": {
-        "Technology": 2636,
-        "Other/Unclassified": 2158,
-        "HealthTech/Biotech": 1165,
-        "Consumer": 668,
-        "FinTech": 203,
-        "Energy/ClimateTech": 136
+        "Technology": 2627,
+        "Other/Unclassified": 2098,
+        "HealthTech/Biotech": 1154,
+        "Consumer": 656,
+        "FinTech": 195,
+        "Energy/ClimateTech": 135
       },
       "partial": false
     },
     {
       "year": 2024,
-      "rounds": 6674,
-      "companies": 6373,
-      "median_amount_sold": 2000001,
+      "rounds": 6581,
+      "companies": 6289,
+      "median_amount_sold": 2000000,
       "rounds_by_sector": {
-        "Technology": 2523,
-        "Other/Unclassified": 2113,
-        "HealthTech/Biotech": 1046,
-        "Consumer": 644,
-        "FinTech": 204,
-        "Energy/ClimateTech": 144
+        "Technology": 2508,
+        "Other/Unclassified": 2062,
+        "HealthTech/Biotech": 1043,
+        "Consumer": 626,
+        "FinTech": 200,
+        "Energy/ClimateTech": 142
       },
       "partial": false
     },
     {
       "year": 2025,
-      "rounds": 6508,
-      "companies": 6178,
-      "median_amount_sold": 1873414,
+      "rounds": 6429,
+      "companies": 6113,
+      "median_amount_sold": 1800000,
       "rounds_by_sector": {
-        "Technology": 2557,
-        "Other/Unclassified": 1997,
-        "HealthTech/Biotech": 990,
-        "Consumer": 619,
-        "FinTech": 218,
-        "Energy/ClimateTech": 127
+        "Technology": 2548,
+        "Other/Unclassified": 1964,
+        "HealthTech/Biotech": 983,
+        "Consumer": 602,
+        "FinTech": 206,
+        "Energy/ClimateTech": 126
       },
       "partial": false
     },
     {
       "year": 2026,
-      "rounds": 4380,
-      "companies": 4276,
+      "rounds": 4320,
+      "companies": 4219,
       "median_amount_sold": 1000000,
       "rounds_by_sector": {
-        "Technology": 1746,
-        "Other/Unclassified": 1283,
-        "HealthTech/Biotech": 649,
-        "Consumer": 446,
-        "FinTech": 144,
-        "Energy/ClimateTech": 112
+        "Technology": 1744,
+        "Other/Unclassified": 1253,
+        "HealthTech/Biotech": 641,
+        "Consumer": 436,
+        "FinTech": 137,
+        "Energy/ClimateTech": 109
       },
       "partial": true
     }
@@ -319,129 +327,129 @@
   "by_sector": [
     {
       "venture_sector": "Technology",
-      "rounds": 43553,
-      "companies": 23829,
-      "share_of_rounds": 0.3797,
-      "median_amount_sold": 1590479
+      "rounds": 43380,
+      "companies": 23715,
+      "share_of_rounds": 0.3824,
+      "median_amount_sold": 1575000
     },
     {
       "venture_sector": "Other/Unclassified",
-      "rounds": 34001,
-      "companies": 22617,
-      "share_of_rounds": 0.2964,
-      "median_amount_sold": 1155000
+      "rounds": 33356,
+      "companies": 22120,
+      "share_of_rounds": 0.2941,
+      "median_amount_sold": 1105000
     },
     {
       "venture_sector": "HealthTech/Biotech",
-      "rounds": 18160,
-      "companies": 9457,
-      "share_of_rounds": 0.1583,
+      "rounds": 18039,
+      "companies": 9373,
+      "share_of_rounds": 0.159,
       "median_amount_sold": 2000000
     },
     {
       "venture_sector": "Consumer",
-      "rounds": 12773,
-      "companies": 8626,
-      "share_of_rounds": 0.1114,
-      "median_amount_sold": 800000
+      "rounds": 12558,
+      "companies": 8469,
+      "share_of_rounds": 0.1107,
+      "median_amount_sold": 770000
     },
     {
       "venture_sector": "FinTech",
-      "rounds": 3662,
-      "companies": 2321,
-      "share_of_rounds": 0.0319,
-      "median_amount_sold": 2613014
+      "rounds": 3585,
+      "companies": 2274,
+      "share_of_rounds": 0.0316,
+      "median_amount_sold": 2500000
     },
     {
       "venture_sector": "Energy/ClimateTech",
-      "rounds": 2546,
-      "companies": 1591,
+      "rounds": 2518,
+      "companies": 1565,
       "share_of_rounds": 0.0222,
-      "median_amount_sold": 1518187
+      "median_amount_sold": 1500000
     }
   ],
   "by_amount_bucket": [
     {
       "amount_bucket": "<$1M",
-      "rounds": 48926,
-      "share_of_rounds": 0.4266
+      "rounds": 48751,
+      "share_of_rounds": 0.4298
     },
     {
       "amount_bucket": "$1–5M",
-      "rounds": 34527,
-      "share_of_rounds": 0.301
+      "rounds": 34248,
+      "share_of_rounds": 0.3019
     },
     {
       "amount_bucket": "$5–20M",
-      "rounds": 20483,
-      "share_of_rounds": 0.1786
+      "rounds": 20233,
+      "share_of_rounds": 0.1784
     },
     {
       "amount_bucket": "$20M+",
-      "rounds": 10759,
-      "share_of_rounds": 0.0938
+      "rounds": 10204,
+      "share_of_rounds": 0.09
     }
   ],
   "top_states": [
     {
       "state": "CA",
-      "rounds": 25375,
-      "companies": 15070,
-      "share_of_rounds": 0.2212
+      "rounds": 25173,
+      "companies": 14901,
+      "share_of_rounds": 0.2219
     },
     {
       "state": "NY",
-      "rounds": 12695,
-      "companies": 7910,
-      "share_of_rounds": 0.1107
+      "rounds": 12463,
+      "companies": 7746,
+      "share_of_rounds": 0.1099
     },
     {
       "state": "MA",
-      "rounds": 7537,
-      "companies": 3963,
-      "share_of_rounds": 0.0657
+      "rounds": 7486,
+      "companies": 3932,
+      "share_of_rounds": 0.066
     },
     {
       "state": "TX",
-      "rounds": 7450,
-      "companies": 4825,
-      "share_of_rounds": 0.065
+      "rounds": 7346,
+      "companies": 4752,
+      "share_of_rounds": 0.0648
     },
     {
       "state": "FL",
-      "rounds": 5048,
-      "companies": 3418,
-      "share_of_rounds": 0.044
+      "rounds": 4976,
+      "companies": 3372,
+      "share_of_rounds": 0.0439
     },
     {
       "state": "CO",
-      "rounds": 4829,
-      "companies": 2655,
-      "share_of_rounds": 0.0421
+      "rounds": 4801,
+      "companies": 2634,
+      "share_of_rounds": 0.0423
     },
     {
       "state": "WA",
-      "rounds": 4737,
-      "companies": 2689,
-      "share_of_rounds": 0.0413
+      "rounds": 4712,
+      "companies": 2673,
+      "share_of_rounds": 0.0415
     },
     {
       "state": "IL",
-      "rounds": 3743,
-      "companies": 2372,
-      "share_of_rounds": 0.0326
+      "rounds": 3691,
+      "companies": 2328,
+      "share_of_rounds": 0.0325
     },
     {
       "state": "PA",
-      "rounds": 3243,
-      "companies": 1873,
-      "share_of_rounds": 0.0283
+      "rounds": 3164,
+      "companies": 1815,
+      "share_of_rounds": 0.0279
     },
     {
       "state": "NC",
-      "rounds": 2830,
-      "companies": 1629,
-      "share_of_rounds": 0.0247
+      "rounds": 2813,
+      "companies": 1616,
+      "share_of_rounds": 0.0248
     }
   ]
 }

@@ -36,8 +36,19 @@ DAYS_PER_MONTH = 30.4375
 # hide a raise that predates the files.
 STARTUP_FIRST_ROUND_ON_OR_AFTER = pd.Timestamp("2010-01-01")
 YOUNG_COMPANY_YEARS = 5
+# Names that private-equity buyouts, SPACs and fund vehicles use. A buyout
+# creates a new company, so it passes the young-company test above.
+VEHICLE_NAME_PATTERN = re.compile(
+    r"\b(?:top ?co|hold ?co|mid ?co|bid ?co|parent|conglomerate|intermediate"
+    r"|acquisition corp(?:oration)?|merger sub)\b",
+    re.IGNORECASE,
+)
+# A startup does not report this much revenue at its first observed round.
+ESTABLISHED_REVENUE_RANGE = "Over $100,000,000"
 
 PIPELINE_DIR = Path(__file__).resolve().parent
+# Hand-reviewed companies that the two rules above miss. One reason per row.
+EXCLUDED_COMPANIES_PATH = PIPELINE_DIR / "excluded_companies.csv"
 RAW_DIR = PIPELINE_DIR / "data" / "raw"
 PROCESSED_DIR = PIPELINE_DIR / "data" / "processed"
 
@@ -1207,6 +1218,8 @@ def build_venture_rounds(
         "of 0 or null and are excluded from venture round construction. "
         f"{len(completed):,} completed offerings are merged into venture rounds."
     )
+    excluded = pd.DataFrame(columns=LIKELY_NON_STARTUP_COLUMNS)
+    excluded_rounds = 0
     if completed.empty:
         venture = pd.DataFrame(columns=VENTURE_COLUMNS)
     else:
@@ -1214,6 +1227,24 @@ def build_venture_rounds(
         helper_columns = ["year_of_inc", "year_of_inc_timespan", "industry_at_start", "entity_type"]
         built = built.drop(columns=[column for column in helper_columns if column in built.columns])
         venture = built.merge(venture_companies, on="cik", how="inner")
+        reviewed = load_excluded_companies()
+        unknown = sorted(set(reviewed["cik"]) - set(venture["cik"]))
+        if unknown:
+            raise SystemExit(
+                f"ERROR: excluded_companies.csv lists CIKs that are not in the venture set: {', '.join(unknown)}"
+            )
+        excluded = likely_non_startups(venture, reviewed)
+        report.note(
+            f"{excluded['cik'].nunique():,} companies ({int(excluded['rounds'].sum()):,} completed rounds) "
+            "look like non-startups and are dropped from venture rounds: "
+            + ", ".join(
+                f"{rule} {count:,}" for rule, count in excluded["rule"].value_counts().sort_index().items()
+            )
+            + ". They stay in rounds.parquet and are listed in likely_non_startups.csv."
+        )
+        excluded_rounds = int(excluded["rounds"].sum())
+        excluded_ciks = set(excluded["cik"])
+        venture = venture.loc[~venture["cik"].isin(excluded_ciks)].copy()
         venture["is_startup"] = True
         venture["is_venture"] = True
         venture = (
@@ -1221,15 +1252,74 @@ def build_venture_rounds(
             .sort_values(["cik", "observed_round_number"], kind="mergesort")
             .reset_index(drop=True)
         )
+    likely_companies = int(venture["cik"].nunique()) if len(venture) else 0
     stats = {
         "venture_companies": int(venture_companies["cik"].nunique()),
-        "completed_companies": int(venture["cik"].nunique()) if len(venture) else 0,
+        "completed_companies": likely_companies + int(excluded["cik"].nunique()),
+        "completed_rounds": int(len(venture)) + excluded_rounds,
+        "likely_startup_companies": likely_companies,
         "venture_rounds": int(len(venture)),
         "incomplete_offerings": incomplete,
         "completed_offerings": int(len(completed)),
         "relevant_offerings": int(len(relevant)),
     }
-    return venture, stats
+    return venture, stats, excluded
+
+
+LIKELY_NON_STARTUP_COLUMNS = ["cik", "entity_name", "rule", "detail", "rounds"]
+
+
+def load_excluded_companies(path: Path = EXCLUDED_COMPANIES_PATH) -> pd.DataFrame:
+    """The hand-reviewed list: cik, entity_name, reason."""
+    frame = pd.read_csv(path, dtype=str)
+    missing = {"cik", "entity_name", "reason"} - set(frame.columns)
+    if missing:
+        raise SystemExit(f"ERROR: {path} is missing columns: {', '.join(sorted(missing))}")
+    if frame["cik"].duplicated().any():
+        raise SystemExit(f"ERROR: {path} lists a CIK more than once.")
+    return frame
+
+
+def likely_non_startups(rounds: pd.DataFrame, reviewed: pd.DataFrame) -> pd.DataFrame:
+    """Companies in the venture set that are probably not startups, one row each.
+
+    Checked in this order, and the first rule that applies is recorded:
+    1. reviewed: the CIK is in excluded_companies.csv.
+    2. vehicle_name: any round's entity name matches VEHICLE_NAME_PATTERN.
+    3. established_revenue: the first observed round reports revenue over $100M.
+    """
+    ordered = rounds.sort_values(["cik", "observed_round_number"], kind="mergesort")
+    per_company = ordered.groupby("cik", sort=True).agg(
+        entity_name=("entity_name", "last"),
+        first_revenue=("revenue_range", "first"),
+        rounds=("cik", "size"),
+    )
+    vehicle_names = (
+        ordered.loc[ordered["entity_name"].fillna("").str.contains(VEHICLE_NAME_PATTERN), ["cik", "entity_name"]]
+        .drop_duplicates("cik")
+        .set_index("cik")["entity_name"]
+    )
+    reasons = reviewed.set_index("cik")["reason"]
+    records = []
+    for cik, row in per_company.iterrows():
+        if cik in reasons.index:
+            rule, detail = "reviewed", reasons[cik]
+        elif cik in vehicle_names.index:
+            rule, detail = "vehicle_name", f"Name looks like a buyout, SPAC or fund vehicle: {vehicle_names[cik]}"
+        elif row["first_revenue"] == ESTABLISHED_REVENUE_RANGE:
+            rule, detail = "established_revenue", "Reported revenue over $100M at its first observed round"
+        else:
+            continue
+        records.append(
+            {
+                "cik": cik,
+                "entity_name": row["entity_name"],
+                "rule": rule,
+                "detail": detail,
+                "rounds": int(row["rounds"]),
+            }
+        )
+    return pd.DataFrame(records, columns=LIKELY_NON_STARTUP_COLUMNS)
 
 
 def funnel_steps(
@@ -1260,6 +1350,12 @@ def funnel_steps(
         (
             "Completed rounds",
             venture_stats["completed_companies"],
+            venture_stats["completed_rounds"],
+            "rounds",
+        ),
+        (
+            "Likely startups",
+            venture_stats["likely_startup_companies"],
             venture_stats["venture_rounds"],
             "venture rounds",
         ),
@@ -1279,6 +1375,8 @@ def format_funnel(steps: list[dict[str, object]], venture_stats: dict[str, int])
         "Startups use the first-observed-round rule (2010 and a young company).",
         "Venture-relevant startups have a mapped sector and are a Corporation or Limited Liability Company.",
         "Completed rounds drop offerings whose final TOTALAMOUNTSOLD is 0 or null, then rebuild the 90-day rounds.",
+        "Likely startups drop buyout, SPAC and fund vehicles, companies with revenue over $100M at their "
+        "first round, and the hand-reviewed list in excluded_companies.csv.",
         f"Offerings left out of that rebuild because the amount sold was 0 or null: "
         f"{venture_stats['incomplete_offerings']:,}.",
         "",
@@ -1670,7 +1768,7 @@ def main() -> int:
     print()
     print(entity_text)
 
-    venture_rounds, venture_stats = build_venture_rounds(offerings, company_attrs, report)
+    venture_rounds, venture_stats, non_startups = build_venture_rounds(offerings, company_attrs, report)
     funnel = funnel_steps(population, startup_stats, venture_stats)
     funnel_text = format_funnel(funnel, venture_stats)
     industry_text = sector_preview(venture_rounds)
@@ -1697,6 +1795,7 @@ def main() -> int:
     venture_path = PROCESSED_DIR / "venture_rounds.parquet"
     report_path = PROCESSED_DIR / "data_quality_report.md"
     funnel_path = PROCESSED_DIR / "funnel.json"
+    non_startups_path = PROCESSED_DIR / "likely_non_startups.csv"
     rounds.to_parquet(parquet_path, index=False, engine="pyarrow")
     startup_rounds.to_parquet(startup_path, index=False, engine="pyarrow")
     venture_rounds.to_parquet(venture_path, index=False, engine="pyarrow")
@@ -1717,6 +1816,7 @@ def main() -> int:
         encoding="utf-8",
     )
     funnel_path.write_text(json.dumps(funnel, indent=2) + "\n", encoding="utf-8")
+    non_startups.sort_values(["rule", "cik"]).to_csv(non_startups_path, index=False)
     check = pd.read_parquet(parquet_path)
     startup_check = pd.read_parquet(startup_path)
     venture_check = pd.read_parquet(venture_path)
@@ -1725,7 +1825,7 @@ def main() -> int:
         f"Wrote {parquet_path} ({len(check):,} rounds, {check['cik'].nunique():,} companies), "
         f"{startup_path} ({len(startup_check):,} rounds, {startup_check['cik'].nunique():,} companies), "
         f"{venture_path} ({len(venture_check):,} rounds, {venture_check['cik'].nunique():,} companies), "
-        f"{report_path}, and {funnel_path}"
+        f"{report_path}, {funnel_path}, and {non_startups_path} ({len(non_startups):,} companies)"
     )
     return 0
 

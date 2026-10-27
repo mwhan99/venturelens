@@ -399,10 +399,15 @@ setup.
     Stripe, Inc. with a note explaining why it isn't in the benchmark;
     searching "Instacart" finds Maplebear Inc.; "LAVA TOPCO" shows the
     buyout-vehicle note from `likely_non_startups.csv`.
-    *(Built and checked locally against the live database: Figma's 7 rounds,
-    Stripe "not a young company", Instacart → Maplebear, the typo
-    "Databriks" → Databricks, 404s for bad IDs, phone width. Needs the two
-    Vercel environment variables before it works on the live site.)*
+    *(Done, Oct 27, 2026, and checked on the live site: Figma "counted as
+    Technology" with its $415.75M round, Stripe "already established",
+    Instacart → Maplebear, "Databriks" → Databricks, "warby parker" → JAND.
+    `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` are set in Vercel for
+    Production only, so lookup pages in pull-request previews show the error
+    page; add them for Preview too if that matters. Made-up company IDs show
+    the 404 page with a `noindex` tag but an HTTP 200 status, because the
+    loading outline starts streaming first; harmless for visitors and
+    search engines.)*
 
 **Phase E — keep it fresh, then polish**
 

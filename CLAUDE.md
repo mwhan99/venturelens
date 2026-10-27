@@ -70,9 +70,13 @@ Numbers below were checked against the data on Oct 26, 2026.
   bound** on fundraising (SAFEs, notes and some rounds never appear), and
   rounds under 3 months apart can't be measured. Pages must say "not
   measurable" rather than show 0%.
-- Secrets (the SEC user-agent email, later the Supabase keys) go in
+- Secrets (the SEC user-agent email, the Supabase keys) go in
   environment variables, GitHub Actions secrets or Vercel settings, never in
-  the repo.
+  the repo. The Supabase **secret** key (`sb_secret_…`, can write) lives
+  only in `pipeline/.env` on Meng's Mac until step 12 needs it in GitHub.
+  The website and the keep-awake job use the read-only **publishable** key
+  (`sb_publishable_…`). Never give the secret key a `NEXT_PUBLIC_` name or
+  put it in `.env.local` (Next.js reads that file).
 - Verify on the real deployed site, not only on localhost.
 
 ---
@@ -134,6 +138,10 @@ today.
 | `pipeline/excluded_companies.csv` | The hand-reviewed list of 21 companies that aren't startups but pass the automatic rules (a $48B "round" from 1 investor, a cluster of $1.5B filings from exactly 11 investors, Apollo and Goldman funds, subsidiaries of public companies). One reason per row. The build stops if a listed ID isn't in the data. |
 | `pipeline/tests/` | pytest tests for `summarize.py`, the funnel and the likely-startup rules in `build_dataset.py`, on tiny hand-made datasets. |
 | `pipeline/requirements-dev.txt` | `requirements.txt` plus pytest 9.1.1. |
+| `supabase/schema.sql` | The company-lookup database (step 10): `filers` (one row per Form D filer, with `benchmark_status`: benchmark, likely_non_startup, not_young, non_venture_industry, no_completed_round or other_legal_form, plus the reason in words), `filer_names` (every filed name plus brand aliases, with a trigram index for fuzzy search), `rounds` (all 247,406), `sync_info`, and the `search_filers(query)` function. Read-only for everyone except the secret key. Run it in the Supabase SQL Editor; safe to run again. |
+| `pipeline/supabase_sync.py` | Uploads the lookup tables from `rounds.parquet`, `venture_rounds.parquet`, `likely_non_startups.csv` and `brand_aliases.csv`. `--dry-run` builds and counts without sending. A real run upserts in batches of 2,000, deletes rows left from an older upload, then counts the rows in Supabase and fails if they differ. Reads `SUPABASE_URL` and `SUPABASE_SECRET_KEY` from the environment or `pipeline/.env`. |
+| `pipeline/brand_aliases.csv` | Brand names for companies that file under a legal name (Instacart → Maplebear Inc., Warby Parker → JAND, Rippling → People Center), so the search finds them. The sync stops if a listed CIK isn't a filer. |
+| `.github/workflows/supabase-keep-awake.yml` | Reads one row from Supabase every day (14:17 UTC) so the free project never pauses. Uses `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` repository secrets; if they're missing it warns and passes. |
 | `pipeline/DECISIONS.md` | Why each cleaning rule exists and where it can be wrong. |
 | `pipeline/FINDINGS.md` | The results in words. Its **Validation** table is still empty. |
 | `pipeline/README.md` | How to run the four scripts, and what each output column means. |
@@ -379,6 +387,10 @@ setup.
     Write `pipeline/supabase_sync.py` to load `rounds.parquet` into it. Add a
     daily "ping" GitHub job so the free project is never paused. *Check:*
     the row counts in Supabase match section 2 (247,406 rounds).
+    *(Code written: `supabase/schema.sql`, `pipeline/supabase_sync.py`, the
+    keep-awake job. The dry run gives 166,601 filers, 172,445 names and
+    247,406 rounds, with exactly 67,516 marked benchmark. Waiting for Meng to
+    create the project and add the keys.)*
 11. **Lookup pages** (`/companies` and `/companies/[cik]`). *Check:*
     searching "Figma" shows Figma, Inc.'s rounds; searching "Stripe" shows
     Stripe, Inc. with a note explaining why it isn't in the benchmark;

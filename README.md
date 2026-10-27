@@ -1,54 +1,59 @@
 # VentureLens
 
-**Startup screening backed by real data: runway, returns, and risk for any startup, benchmarked against 113,436 funding rounds from SEC Form D filings.**
+**How often do US startups raise again, and how soon? Fundraising benchmarks built from 365,344 SEC Form D filers, plus a screening calculator that puts any startup's runway next to them.**
 
-🔗 **Live demo:** https://venturelens-chi.vercel.app
-Demo companies are simulated (private startups' financials aren't public); the financing benchmarks come from real SEC filings.
-*(Open **Screen a startup**: 10 simulated demo startups load automatically on your first visit.)*
+🔗 **Live site:** https://venturelens-chi.vercel.app
 
-![Dashboard](docs/screenshots/dashboard.png)
+![VentureLens home page: 32.8% of startup rounds were followed by another Form D filing within 24 months](docs/screenshots/home.png)
 
 ---
 
-## The problem
+## What the data shows
 
-Angel investors, student investment clubs, and junior VC analysts screen dozens of startups with the same handful of numbers: revenue, growth, burn, cash, valuation. In practice that screening happens in one-off spreadsheets, so:
+Across **113,436 funding rounds by 67,516 US startups (2010–2026)**, from public SEC Form D filings:
 
-- **Assumptions are inconsistent** from one deal to the next, which makes companies hard to compare.
-- **Return math gets separated from risk.** A 10x modeled MOIC means little if the company has 8 months of cash.
-- **Lessons from past failures aren't applied systematically.** Patterns like the ones behind WeWork or Bird show up in screening data long before the outcome.
-- Benchmarks for how long comparable startups take to raise again sit behind paid databases; VentureLens builds them from free public filings.
+- **About a third of rounds (32.8%) are followed by another Form D filing within 24 months.** That's a lower bound: many raises are never filed on Form D.
+- **When a startup does file again, it's about 14.5 months later**, and that gap is close to 14 months in every sector.
+- **Mid-size rounds lead.** $1–5M Technology rounds filed again 42.1% of the time within two years, against 33.7% for rounds under $1M and 35.7% for $20M or more.
+- **Momentum is visible.** Companies on their third or later round in the data file again roughly half the time within 24 months; first rounds seen do so 17–32% of the time, depending on sector.
+- **The 2021 boom shows up clearly:** 9,425 rounds in 2021, 6,429 in 2025 (32% fewer). The median round is $1.4M.
 
-VentureLens standardizes that first pass: the same inputs, the same scenario logic, and the same risk rules for every company, plus a written memo that states the main strength, the biggest risk, and the key diligence question.
+Paid databases like PitchBook sell this kind of benchmark. VentureLens builds it from free public filings, and shows its work. Full write-up: [pipeline/FINDINGS.md](pipeline/FINDINGS.md).
 
-## What it does
+## The site
 
-| Feature | What you get |
+| Page | What it does |
 |---|---|
-| **Analyze Startup** | Runway, post-money valuation, ownership before and after dilution, exit value, MOIC, and IRR from a single form |
-| **Scenario Analysis** | Bear / Base / Bull cases built around *your* assumptions, editable side by side |
-| **Risk Assessment** | Rule-based flags for growth, runway, gross margin, customer concentration, and return sensitivity |
-| **Financing Benchmark** | SEC Form D rates for how often comparable rounds were followed by another filing within the company's runway |
-| **Investment Memo** | A structured screening memo with an auto-generated executive summary; printable to PDF |
-| **Compare Startups** | Side-by-side metrics plus insights that flag trade-offs (e.g., higher MOIC but lower IRR due to a longer horizon) |
-| **Fundraising Odds Explorer** | Pick a sector and a round size or stage, and see how often rounds were followed by another Form D filing, month by month, as a shareable link |
-| **Historical Cases** | On each saved company's page: matches its risk pattern to sourced failure cases (WeWork, Bird, Fast, Airlift) and surfaces diligence questions |
+| **[Home](https://venturelens-chi.vercel.app)** | The story in numbers: the odds curve, a sector and round-size picker, key findings written from the data, rounds per year, and the cleaning funnel |
+| **[Explore odds](https://venturelens-chi.vercel.app/explore)** | Pick a sector, then a round size or a stage, and see the chance of another filing by month 6, 12, 18, 24 and 36 against all startups. Every view is a shareable link |
+| **[Methodology](https://venturelens-chi.vercel.app/methodology)** | How filings become rounds, how “raising again” is measured, the validation check, and the limitations, in plain English |
+| **[Screen a startup](https://venturelens-chi.vercel.app/screen)** | A calculator for one startup: runway, ownership, MOIC, IRR, Bear/Base/Bull cases, risk flags, and how often comparable rounds raised again within its runway. Save companies to compare them or write a printable memo |
 
-![Investment memo](docs/screenshots/memo.png)
-![Historical case matching](docs/screenshots/historical-cases.png)
+![Fundraising odds explorer: FinTech companies on their third or later round, 50.8% filed again within 24 months](docs/screenshots/explore.png)
 
-## How it works
+## How the data is built
 
-**1. Financial engine** (`src/lib/finance/engine.ts`)
+A Python pipeline (`pipeline/`) turns the SEC's quarterly Form D data sets into funding rounds:
+
+1. **Download** every quarterly data set the SEC has published (`download.py`).
+2. **Clean** (`build_dataset.py`): drop investment funds and non-US companies; fold amendments into the original filing; merge filings within 90 days into one round; keep companies under about five years old at their first round seen (2010 on) in venture-type industries; drop buyout, SPAC and fund vehicles, established businesses, and a hand-reviewed list of implausible filings.
+3. **Measure** (`analyze.py`): Kaplan–Meier estimates of the share of rounds followed by another filing, month by month. Recent rounds count only for the months they've been watched.
+4. **Summarize** (`summarize.py`): headline counts and medians for the site. No dollar totals, because a few self-reported amounts (one filing claims $48 billion from a single investor) would dominate any sum.
+
+The funnel runs from **365,344 filers to 67,516 startups**. Every rule, and where it can be wrong, is in [pipeline/DECISIONS.md](pipeline/DECISIONS.md).
+
+**Validation.** For 10 well-known startups (Ramp, Databricks, Figma, Instacart, Warby Parker, Peloton, Airbnb, Lemonade, Rippling, Plaid), **59 of 82** publicly reported rounds appear in the data. Some companies file every round (Ramp 11 of 11); others stop (Plaid 1 of 6). That matches research finding that most venture-backed rounds have no Form D, and it's why every rate here is a lower bound.
+
+## The screening calculator
+
 - Runway = cash ÷ (annual burn ÷ 12)
 - Ownership = investment ÷ post-money, then reduced by expected future dilution
 - Exit value = current revenue × (1 + growth)^years × exit revenue multiple
 - MOIC = investor exit proceeds ÷ investment; IRR = MOIC^(1/years) − 1
 
-**2. Scenarios** (`src/lib/finance/scenarios.ts`)
-Base uses the user's inputs. Bear halves growth, lowers the exit multiple by 2x, and adds 10 points of dilution. Bull raises growth 25%, adds 2x to the multiple, and cuts dilution by 5 points.
+**Scenarios.** Base uses your inputs. Bear halves growth, lowers the exit multiple by 2x, and adds 10 points of dilution. Bull raises growth 25%, adds 2x to the multiple, and cuts dilution by 5 points.
 
-**3. Risk flags** (`src/lib/finance/risk.ts`)
+**Risk flags.**
 
 | Metric | Positive | Neutral | Caution |
 |---|---|---|---|
@@ -58,39 +63,31 @@ Base uses the user's inputs. Bear halves growth, lowers the exit multiple by 2x,
 | Largest customer share | < 15% | 15–30% | ≥ 30% |
 | Bull–bear IRR spread | < 25 pts | 25–50 pts | ≥ 50 pts |
 
-**4. Historical case matching** (`src/lib/cases/`)
-Flags are converted into risk tags (e.g., `runway-risk`, `high-burn`, `weak-capital-efficiency`). A company is matched to a historical case when they share at least two tags. Every match states the similarities, the differences, and that a shared pattern does not imply the same outcome.
+**Form D benchmark.** The startup's sector and check size pick comparable rounds, and its runway picks the month to read. For example: of 949 comparable FinTech $1–5M rounds, 23% were followed by another filing within 16 months.
 
-## Data
+**Historical cases.** Flags become risk tags (e.g. `runway-risk`, `high-burn`); a company is matched to a sourced failure case (WeWork, Bird, Fast, Airlift, Theranos) when they share at least two tags, with the similarities, differences and diligence questions.
 
-VentureLens financing benchmarks come from public SEC Form D filings. The pipeline in `pipeline/` downloads the quarterly data sets, drops pooled funds and non-US issuers, keeps young operating companies in venture-relevant industries, drops buyout, SPAC and fund vehicles and established businesses, and merges offerings within 90 days into one round. Of 365,344 filers, 67,516 are venture startups in the benchmark file, covering 113,436 completed rounds. A check against 10 well-known startups found about 59 of their 82 publicly reported rounds. A later Form D filing is a lower bound on fundraising, because SAFEs, notes, and some rounds never appear. The results are written up in [pipeline/FINDINGS.md](pipeline/FINDINGS.md). The cleaning rules are in [pipeline/DECISIONS.md](pipeline/DECISIONS.md).
+The 10 demo companies load automatically on a first visit and are **simulated**, because private startups' financials aren't public.
 
-![Kaplan–Meier curves by sector](docs/charts/km_by_sector.png)
-
-![Share of rounds followed by another Form D filing within 24 months](docs/charts/filed_again_24m_by_sector_amount.png)
+![Investment memo for a simulated company](docs/screenshots/memo.png)
 
 ## Limitations
 
-This is a screening prototype, not a valuation model. Being explicit about what it doesn't do:
-
-- **Demo companies are simulated.** The memo's portfolio comparison ranks them against each other, not the market; the Financing Benchmark uses real SEC Form D data.
-- **Form D benchmarks are a lower bound on fundraising:** SAFEs, notes, and some rounds never appear, and offerings within 90 days are merged, so gaps under 3 months aren't measurable.
-- **Growth is compounded at a constant rate.** Real startups decelerate, so modeled returns at high growth rates are optimistic.
-- **Thresholds are not sector-specific.** A 70% gross margin bar fits SaaS but is too strict for fintech, marketplaces, or hardware.
-- **The case library is small** (5 cases), so matching illustrates a method rather than producing statistically meaningful results.
-- **Data is stored in the browser** (localStorage). Nothing is shared between visitors or devices.
-
-## Roadmap
-
-- Sector-specific risk thresholds
-- A growth-decay model instead of constant compounding
-- An expanded, validated case library that tests whether the flags actually predict outcomes
+- **A lower bound, not a success rate.** No later filing can mean an unfiled raise, an acquisition, an IPO or a shutdown.
+- **A pattern, not a cause.** Companies on later rounds file again more often; that describes who keeps filing.
+- **Under 3 months isn't measurable**, because filings within 90 days are merged into one round.
+- **“Startup” is a rule, not a fact.** Some real startups fail the rules (one files as “…Holdco”) and some non-startups pass them.
+- **A company is an SEC ID, not a brand.** Instacart files as Maplebear Inc.; a change of legal form gives a new ID.
+- **The calculator is a first pass:** growth compounds at a constant rate, thresholds aren't sector-specific, and the case library has 5 cases.
+- **Saved companies stay in your browser.** Nothing is shared between visitors or devices.
 
 ## Tech stack
 
-Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · deployed on Vercel
+Python (pandas, lifelines, pytest) for the data pipeline · Next.js 16, React 19, TypeScript and Tailwind CSS 4 for the site · hand-drawn SVG charts · Vitest · Vercel. Every page is prebuilt from two generated JSON files, so it loads instantly and no number is typed in by hand.
 
 ## Run locally
+
+**The website:**
 
 ```bash
 git clone https://github.com/mwhan99/venturelens.git
@@ -99,13 +96,29 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000.
+Open http://localhost:3000. Run the tests with `npm test`.
 
-**Run the tests.** They check the financial engine against a hand-checked reference case (NovaPay), the historical case matching, and the Form D benchmark lookup:
+**The data pipeline** (Python 3.11 or newer; the raw data is about 1.2 GB once unzipped):
 
 ```bash
-npm test
+python3 -m venv pipeline/.venv
+source pipeline/.venv/bin/activate
+pip install -r pipeline/requirements-dev.txt
+export SEC_USER_AGENT="Your Name you@example.com"
+python pipeline/download.py
+python pipeline/build_dataset.py
+python pipeline/analyze.py
+python pipeline/summarize.py
+python -m pytest pipeline/tests
 ```
+
+Details are in [pipeline/README.md](pipeline/README.md).
+
+## Roadmap
+
+- **Company lookup:** search any of the 166,601 Form D filers and see its rounds, and why it is or isn't in the benchmark
+- **Quarterly refresh:** a scheduled job that rebuilds the data when the SEC posts a new quarter
+- Sector-specific risk thresholds, and a growth-decay model instead of constant compounding
 
 ---
 

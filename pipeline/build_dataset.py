@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import csv
 import io
+import json
 import re
 import sys
 from bisect import bisect_right
@@ -1231,9 +1232,10 @@ def build_venture_rounds(
     return venture, stats
 
 
-def format_funnel(
+def funnel_steps(
     population: dict[str, int], startup_stats: dict[str, int], venture_stats: dict[str, int]
-) -> str:
+) -> list[dict[str, object]]:
+    """The funnel as {step, companies, rows, row_unit} records, in order."""
     steps = [
         ("All filings", population["all_companies"], population["all_filings"], "filings"),
         (
@@ -1262,6 +1264,13 @@ def format_funnel(
             "venture rounds",
         ),
     ]
+    return [
+        {"step": name, "companies": int(companies), "rows": int(rows), "row_unit": unit}
+        for name, companies, rows, unit in steps
+    ]
+
+
+def format_funnel(steps: list[dict[str, object]], venture_stats: dict[str, int]) -> str:
     lines = [
         "Funnel. Percent is companies remaining versus the previous step.",
         "All filings are joined Form D filings, including funds and non-US issuers.",
@@ -1276,7 +1285,8 @@ def format_funnel(
         f"{'Step':<22} {'Companies':>12} {'% of previous':>14} {'Rows':>12}  {'Row unit'}",
     ]
     previous: int | None = None
-    for name, companies, rows, unit in steps:
+    for step in steps:
+        name, companies, rows, unit = step["step"], step["companies"], step["rows"], step["row_unit"]
         if previous is None or previous == 0:
             share = "100%" if previous is None else "n/a"
         else:
@@ -1661,7 +1671,8 @@ def main() -> int:
     print(entity_text)
 
     venture_rounds, venture_stats = build_venture_rounds(offerings, company_attrs, report)
-    funnel_text = format_funnel(population, startup_stats, venture_stats)
+    funnel = funnel_steps(population, startup_stats, venture_stats)
+    funnel_text = format_funnel(funnel, venture_stats)
     industry_text = sector_preview(venture_rounds)
     examples_text = example_timelines(venture_rounds)
     print()
@@ -1685,6 +1696,7 @@ def main() -> int:
     startup_path = PROCESSED_DIR / "startup_rounds.parquet"
     venture_path = PROCESSED_DIR / "venture_rounds.parquet"
     report_path = PROCESSED_DIR / "data_quality_report.md"
+    funnel_path = PROCESSED_DIR / "funnel.json"
     rounds.to_parquet(parquet_path, index=False, engine="pyarrow")
     startup_rounds.to_parquet(startup_path, index=False, engine="pyarrow")
     venture_rounds.to_parquet(venture_path, index=False, engine="pyarrow")
@@ -1704,6 +1716,7 @@ def main() -> int:
         ),
         encoding="utf-8",
     )
+    funnel_path.write_text(json.dumps(funnel, indent=2) + "\n", encoding="utf-8")
     check = pd.read_parquet(parquet_path)
     startup_check = pd.read_parquet(startup_path)
     venture_check = pd.read_parquet(venture_path)
@@ -1712,7 +1725,7 @@ def main() -> int:
         f"Wrote {parquet_path} ({len(check):,} rounds, {check['cik'].nunique():,} companies), "
         f"{startup_path} ({len(startup_check):,} rounds, {startup_check['cik'].nunique():,} companies), "
         f"{venture_path} ({len(venture_check):,} rounds, {venture_check['cik'].nunique():,} companies), "
-        f"and {report_path}"
+        f"{report_path}, and {funnel_path}"
     )
     return 0
 

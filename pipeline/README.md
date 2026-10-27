@@ -14,6 +14,8 @@ source pipeline/.venv/bin/activate
 pip install -r pipeline/requirements.txt
 ```
 
+To also run the tests, install `pipeline/requirements-dev.txt` instead (it adds pytest) and run `python -m pytest pipeline/tests`.
+
 The SEC will not answer requests that hide who is calling. Set a user agent with your name and a contact email before downloading:
 
 ```bash
@@ -28,13 +30,16 @@ Still from the repository root, with the virtualenv active:
 python pipeline/download.py
 python pipeline/build_dataset.py
 python pipeline/analyze.py
+python pipeline/summarize.py
 ```
 
 `download.py` reads the zip links from the SEC Form D data-sets page, so it picks up whichever quarters are posted (the path of the zip changes by year). It saves each zip under `pipeline/data/raw/`, skips a file that is already there, and unzips that quarter into its own folder. It waits 0.2 seconds between SEC requests.
 
-`build_dataset.py` reads those folders only. Run the download first. Re-running the build overwrites the outputs below.
+`build_dataset.py` reads those folders only. Run the download first. Re-running the build overwrites the outputs below. It also writes `funnel.json`, the company and row counts at each cleaning step, which is the same table as the Funnel section of the quality report.
 
 `analyze.py` reads `venture_rounds.parquet` and fits Kaplan–Meier curves for time until the next round. It writes summary benchmarks to `src/data/formd/benchmarks.json` and charts to `docs/charts/`. It does not change the web app. The write-up of those results is `pipeline/FINDINGS.md`.
+
+`summarize.py` reads `venture_rounds.parquet`, `funnel.json`, and the dataset end date in `benchmarks.json`, so it runs last. It writes `src/data/formd/summary.json` for the website: headline counts, the funnel, rounds and median round size per year (the year that contains the end date is marked partial), rounds by sector, amount bucket, and the top 10 states. It reports medians and counts only, never dollar totals, because a few self-reported amounts (one filing claims $48 billion from a single investor) would dominate any sum.
 
 Downloaded zips, extracted files, the virtualenv, and the generated dataset are gitignored.
 

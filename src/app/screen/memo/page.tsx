@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import { InvestmentMemoPage } from "@/components/memo/InvestmentMemoPage";
 import { PageHeader, PageShell } from "@/components/PageChrome";
+
+export const metadata: Metadata = { title: "Memo" };
 
 export default function MemoPage() {
   return (
@@ -9,7 +12,7 @@ export default function MemoPage() {
         title="Screening memorandum"
         description="A structured synthesis of saved VentureLens outputs. This memo does not recommend an investment decision."
       />
-      <div className="mt-8 min-w-0 print:mt-0">
+      <div className="mt-6 min-w-0 print:mt-0">
         <InvestmentMemoPage />
       </div>
     </PageShell>

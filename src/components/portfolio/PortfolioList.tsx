@@ -50,7 +50,7 @@ export function PortfolioList() {
 
   return (
     <div className="space-y-4">
-      <div className="max-w-full overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+      <div className="relative max-w-full overflow-x-auto rounded-[18px] border border-line bg-card">
           <table className="w-max min-w-full text-left text-sm">
             <thead className="bg-slate-50 text-[11px] uppercase tracking-[0.12em] text-slate-500">
               <tr>
@@ -75,7 +75,7 @@ export function PortfolioList() {
                   <td className="px-5 py-3.5">
                     <div className="flex flex-wrap items-center gap-2">
                       <Link
-                        href={`/portfolio/${company.id}`}
+                        href={`/screen/portfolio/${company.id}`}
                         className="font-medium text-slate-900 hover:text-brand"
                       >
                         {company.profile.companyName || "Untitled company"}

@@ -5,13 +5,10 @@ import { usePathname } from "next/navigation";
 import { Logo } from "@/components/Logo";
 
 // Only pages that exist go here. Company lookup is added when it is built
-// (rebuild plan step 11).
+// (rebuild plan step 11). The calculator's own pages are tabs inside /screen.
 export const NAV_LINKS = [
   { href: "/explore", label: "Explore odds" },
   { href: "/methodology", label: "Methodology" },
-  { href: "/portfolio", label: "Portfolio" },
-  { href: "/compare", label: "Compare" },
-  { href: "/memo", label: "Memo" },
 ] as const;
 
 export function SiteHeader() {
@@ -26,15 +23,17 @@ export function SiteHeader() {
           VentureLens
         </Link>
         <Link
-          href="/analyze"
-          aria-current={isActive("/analyze") ? "page" : undefined}
-          className="rounded-full bg-ink px-4 py-2 text-[15px] font-semibold text-white transition-colors hover:bg-brand sm:order-last"
+          href="/screen"
+          aria-current={isActive("/screen") ? "page" : undefined}
+          className={`rounded-full px-4 py-2 text-[15px] font-semibold text-white transition-colors hover:bg-brand sm:order-last ${
+            isActive("/screen") ? "bg-brand" : "bg-ink"
+          }`}
         >
           Screen a startup
         </Link>
         <nav
           aria-label="Primary"
-          className="-mx-1 flex w-full gap-1 overflow-x-auto text-[15px] font-semibold sm:mx-0 sm:ml-auto sm:w-auto"
+          className="relative -mx-1 flex w-full gap-1 overflow-x-auto text-[15px] font-semibold sm:mx-0 sm:ml-auto sm:w-auto"
         >
           {NAV_LINKS.map((link) => (
             <Link

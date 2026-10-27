@@ -10,7 +10,7 @@ export function PageShell({
 }) {
   return (
     <div
-      className={`mx-auto min-w-0 px-4 py-8 sm:px-6 lg:px-10 lg:py-10 ${
+      className={`mx-auto min-w-0 px-4 pb-4 pt-4 sm:px-6 ${
         width === "memo" ? "max-w-3xl print:max-w-none print:px-8 print:py-0" : "max-w-6xl"
       }`}
     >
@@ -31,16 +31,16 @@ export function PageHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-6 border-b border-slate-200 pb-8 print:hidden lg:flex-row lg:items-end lg:justify-between">
+    <div className="flex flex-col gap-6 rounded-[18px] border border-line bg-card p-6 print:hidden sm:rounded-[22px] sm:p-8 lg:flex-row lg:items-end lg:justify-between">
       <div className="min-w-0 max-w-2xl">
-        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
+        <span className="inline-block rounded-full bg-lime px-2.5 py-1 text-[13px] font-bold text-ink">
           {eyebrow}
-        </p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+        </span>
+        <h1 className="mt-3 font-display text-[clamp(28px,3.6vw,40px)] font-bold leading-[1.08] tracking-[-0.035em] text-ink">
           {title}
         </h1>
         {description ? (
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+          <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted">
             {description}
           </p>
         ) : null}
@@ -53,7 +53,7 @@ export function PageHeader({
 export function EmptyState({
   title,
   description,
-  actionHref = "/analyze",
+  actionHref = "/screen",
   actionLabel = "Analyze Startup",
 }: {
   title: string;
@@ -62,14 +62,14 @@ export function EmptyState({
   actionLabel?: string;
 }) {
   return (
-    <div className="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
-      <p className="text-sm font-medium text-slate-800">{title}</p>
+    <div className="rounded-[18px] border border-dashed border-line bg-card px-6 py-16 text-center sm:rounded-[22px]">
+      <p className="font-display text-lg font-bold text-ink">{title}</p>
       {description ? (
-        <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
+        <p className="mt-2 text-[15px] leading-6 text-muted">{description}</p>
       ) : null}
       <Link
         href={actionHref}
-        className="mt-5 inline-flex h-10 items-center rounded-md bg-brand px-4 text-sm font-medium text-white hover:bg-brand-dark"
+        className="mt-5 inline-flex h-10 items-center rounded-full bg-brand px-5 text-sm font-bold text-white hover:bg-brand-dark"
       >
         {actionLabel}
       </Link>
@@ -77,8 +77,7 @@ export function EmptyState({
   );
 }
 
-export const cardClass =
-  "rounded-lg border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]";
+export const cardClass = "rounded-[18px] border border-line bg-card";
 
 export const tableHeadClass =
   "bg-slate-50 text-[11px] uppercase tracking-[0.12em] text-slate-500";

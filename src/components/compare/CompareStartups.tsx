@@ -260,7 +260,7 @@ export function CompareStartups() {
         />
       </div>
 
-      <div className="min-w-0 w-full max-w-full overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+      <div className="relative min-w-0 w-full max-w-full overflow-x-auto rounded-[18px] border border-line bg-card">
         <div className="min-w-[40rem]">
         <div className="grid grid-cols-[minmax(8.5rem,1.15fr)_1fr_1fr] gap-4 border-b border-slate-100 px-5 py-6 sm:px-8 sm:py-7">
           <div className="hidden sm:block" />

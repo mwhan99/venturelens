@@ -4,9 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/Logo";
 
-// Only pages that exist go here. Explore, Company lookup and Methodology are
-// added as they are built (rebuild plan steps 7, 8 and 11).
+// Only pages that exist go here. Methodology and Company lookup are added as
+// they are built (rebuild plan steps 8 and 11).
 export const NAV_LINKS = [
+  { href: "/explore", label: "Explore odds" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/compare", label: "Compare" },
   { href: "/memo", label: "Memo" },

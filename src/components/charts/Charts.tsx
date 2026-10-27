@@ -182,29 +182,27 @@ export function YearBars({ data }: { data: YearPoint[] }) {
   );
 }
 
-type Series = { label: string; color: string; values: number[] };
+export type CurveSeries = { label: string; values: number[]; color?: string };
 
-export function OddsCurve({ technology, overall, minGap }: { technology: number[]; overall: number[]; minGap: number }) {
+/** One or two curves (the first in violet, the second in coral), months 1–36. */
+export function OddsCurve({ series: input, minGap, height = 280 }: { series: CurveSeries[]; minGap: number; height?: number }) {
   const [tip, setTip] = useState<Tip>(null);
   const [month, setMonth] = useState<number | null>(null);
-  const series: Series[] = [
-    { label: "Technology", color: C.a, values: technology },
-    { label: "All startups", color: C.b, values: overall },
-  ];
-  const height = 280;
-  const top = Math.ceil(Math.max(...technology, ...overall) * 5 + 0.5) / 5;
+  const series = input.map((s, i) => ({ ...s, color: s.color ?? (i === 0 ? C.a : C.b) }));
+  const top = Math.ceil(Math.max(...series.flatMap((s) => s.values)) * 5 + 0.5) / 5;
   return (
     <Frame
       height={height}
-      label={`Share of rounds followed by another Form D filing, by months since the round. By 24 months: Technology ${pct(technology[23])}, all startups ${pct(overall[23])}.`}
+      label={`Share of rounds followed by another Form D filing, by months since the round. By 24 months: ${series.map((s) => `${s.label} ${pct(s.values[23])}`).join(", ")}.`}
       tip={tip}
       table={
         <tbody>
           {[6, 12, 18, 24, 36].map((mo) => (
             <tr key={mo}>
               <th>By month {mo}</th>
-              <td>Technology {pct(technology[mo - 1])}</td>
-              <td>All startups {pct(overall[mo - 1])}</td>
+              {series.map((s) => (
+                <td key={s.label}>{s.label} {pct(s.values[mo - 1])}</td>
+              ))}
             </tr>
           ))}
         </tbody>
@@ -242,6 +240,9 @@ export function OddsCurve({ technology, overall, minGap }: { technology: number[
             {series.map((s, si) => {
               const pts = s.values.map((p, i) => [x(i + 1), y(p)] as const).filter((_, i) => i + 1 > minGap);
               const last = pts[pts.length - 1];
+              // The higher line's label sits above its end point, the lower one's below.
+              const other = series[1 - si];
+              const dy = !other ? 4 : s.values[35] > other.values[35] || (s.values[35] === other.values[35] && si === 0) ? -2 : 12;
               return (
                 <g key={s.label}>
                   <path
@@ -253,7 +254,7 @@ export function OddsCurve({ technology, overall, minGap }: { technology: number[
                     strokeLinecap="round"
                   />
                   <circle cx={last[0]} cy={last[1]} r="4" fill={s.color} stroke={C.surface} strokeWidth="2" />
-                  <text x={last[0] + 8} y={last[1] + (si === 0 ? -2 : 12)} fill={C.ink} fontSize="12" fontWeight="600">
+                  <text x={last[0] + 8} y={last[1] + dy} fill={C.ink} fontSize="12" fontWeight="600">
                     {s.label}
                   </text>
                 </g>

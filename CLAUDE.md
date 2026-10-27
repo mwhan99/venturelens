@@ -103,6 +103,9 @@ Everything is in `src/`. The `@/` in imports means `src/`.
 | `src/app/screen/memo/page.tsx` + `components/memo/` | **Investment Memo**, printable to PDF. The text is written by `src/lib/memo/buildMemo.ts`, including a comparison with the rest of the saved portfolio. |
 | `src/app/screen/compare/page.tsx` + `components/compare/` | **Compare Startups** side by side; trade-off sentences come from `src/lib/compare/insights.ts`. |
 | `next.config.ts` | Turns off the Next.js dev indicator, and `LEGACY_REDIRECTS`: permanent redirects from the pre-step-9 addresses (`/analyze` → `/screen`, `/portfolio[/id]`, `/compare`, `/memo` → under `/screen`; the removed `/benchmark` → `/screen/compare` and `/cases` → `/screen/portfolio`). Query strings pass through. |
+| `src/lib/site.ts`, `src/lib/og.tsx`, `src/app/opengraph-image.tsx`, `src/app/explore/opengraph-image.tsx`, `src/app/methodology/opengraph-image.tsx` | **Link previews** (step 13): the 1200×630 card LinkedIn, Slack and iMessage show. White title card plus a violet panel with one real number (home 32.8%, explorer 42.1%, methodology 59/82), built once at build time from the JSON files. Fonts are fetched from Google Fonts during the build (just the letters used); if that fails the built-in font is used, so it can't break a deploy. Avoid symbols like “→” in the cards, which those fonts lack. Calculator pages reuse the home card. `SITE_URL` comes from Vercel's `VERCEL_PROJECT_PRODUCTION_URL`; set a `SITE_URL` environment variable to override it (e.g. after adding a custom domain). |
+| `src/app/sitemap.ts`, `src/app/robots.ts` | The sitemap (the 7 pages in `PUBLIC_PATHS`, dated by the data's end date) and robots.txt pointing to it. `src/app/seo.test.ts` checks every listed page exists. |
+| `src/app/not-found.tsx`, `src/app/error.tsx`, `src/app/screen/portfolio/[id]/loading.tsx` | A styled 404 page with links to the four main sections; an error page with **Try again** (this Next.js version names the prop `retry`, not `reset`); and a loading outline for a saved company's page, the only page rendered on request. |
 | `src/lib/finance/engine.ts` | The core math (see section 3a). |
 | `src/lib/finance/scenarios.ts`, `risk.ts`, `parse.ts`, `format.ts` | Bear/Base/Bull rules, risk-flag thresholds, reading typed numbers, number display. |
 | `src/lib/cases/`, `src/data/historical-cases.ts` | Turns risk flags into tags and matches them to 5 sourced failure cases (WeWork, Fast, Airlift, Bird, Theranos). |
@@ -392,6 +395,8 @@ setup.
 13. **Polish.** Link previews (an Open Graph image), sitemap, page titles,
     loading and error states, and a phone check. *Check:* test on a real
     phone; paste the link into LinkedIn or iMessage and see the preview.
+    *(Built: three preview cards, sitemap, robots.txt, 404, error and
+    loading pages. The real-phone and LinkedIn checks are Meng's.)*
 14. **Switch the story over.** Rewrite the README around the data, refresh
     the screenshots, and update the one-line description Meng uses on the
     résumé and LinkedIn. *Check:* the README's numbers match the live site.

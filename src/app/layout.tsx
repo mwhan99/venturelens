@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -24,12 +25,16 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "VentureLens: how often do startups raise again?",
     template: "%s · VentureLens",
   },
   description:
     "Fundraising benchmarks for US startups, built from public SEC Form D filings, plus a screening calculator for runway, returns and risk.",
+  // The preview images come from the opengraph-image.tsx files next to each page.
+  openGraph: { siteName: SITE_NAME, type: "website", locale: "en_US" },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

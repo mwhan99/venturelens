@@ -101,10 +101,10 @@ npm run dev
 
 Open http://localhost:3000.
 
-**Validate the financial engine** against a hand-checked reference case (NovaPay):
+**Run the tests.** They check the financial engine against a hand-checked reference case (NovaPay), the historical case matching, and the Form D benchmark lookup:
 
 ```bash
-npx tsx scripts/novapay-validation.ts
+npm test
 ```
 
 ---

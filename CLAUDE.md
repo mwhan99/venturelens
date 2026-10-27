@@ -44,9 +44,11 @@ Numbers below were checked against the data on Oct 26, 2026.
 - Check web changes with `npm run lint` and `npm run build`. Don't run
   `npm run build` while `npm run dev` is running: they share `.next/` and
   the dev server breaks until restarted.
-- Check the calculator with `npx tsx scripts/novapay-validation.ts` and
-  `npx tsx scripts/historical-case-validation.ts` after any change in
-  `src/lib/finance/` or `src/lib/cases/`.
+- Run `npm test` (Vitest 4) before and after any change in `src/lib/`.
+  The tests check the NovaPay reference case, the case matches for all 10
+  demo companies, and the Form D benchmark lookup. If a test fails after a
+  deliberate change, update the expected value in the same pull request and
+  say why.
 - **`src/data/formd/benchmarks.json` and `docs/charts/*.png` are generated**
   by `pipeline/analyze.py`. Never edit them by hand; change the Python and
   re-run it.
@@ -96,7 +98,7 @@ Everything is in `src/`. The `@/` in imports means `src/`.
 | `src/data/form-options.ts` | The industry and stage lists in the form. |
 | `src/lib/storage/` | Saves companies in the visitor's browser (`localStorage`, key `venturelens.companies.v1`). Nothing is shared between visitors or devices. |
 | `src/lib/dashboard/summary.ts`, `src/lib/benchmark/dataset.ts` | Numbers for the dashboard cards and the Dataset Benchmark page. |
-| `scripts/novapay-validation.ts`, `scripts/historical-case-validation.ts` | Hand-checked examples that the calculator and case matching must reproduce. Run with `npx tsx`. These are the only tests today. |
+| `src/lib/**/*.test.ts`, `vitest.config.mts` | The tests, run with `npm test`. `finance/novapay.test.ts` is the hand-checked NovaPay case (analysis, Bear/Base/Bull, risk flags). `cases/match.test.ts` fixes which historical cases each demo company matches. `formd/benchmarks.test.ts` checks the sector and size mapping, a real lookup (FinTech $1–5M at 16 months = 23%), the 36-month cap and "not measurable" under 3 months. |
 | `next.config.ts` | Turns off the Next.js dev indicator. Nothing else. |
 | `public/*.svg` | Leftover starter images from create-next-app. Unused. |
 
@@ -258,7 +260,8 @@ Each step ends with a check. Don't start the next step until it passes.
 2. **Real tests for the calculator.** Add Vitest and turn the two
    validation scripts into tests (`npm test`), so the math is checked
    automatically before moving pages around. *Check:* `npm test` passes, and
-   fails if a formula is deliberately broken.
+   fails if a formula is deliberately broken. *(Done: 23 tests; Vitest 5
+   was skipped because it needs `@types/node` 22+.)*
 3. **More generated data from the pipeline.** Extend `analyze.py` (or a new
    `pipeline/summarize.py`) to write a small `src/data/formd/summary.json`:
    the cleaning funnel, rounds and median amount per year by sector, the top

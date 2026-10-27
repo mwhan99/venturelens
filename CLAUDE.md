@@ -423,12 +423,12 @@ setup.
     request with the new `benchmarks.json`, `summary.json` and charts for
     Meng to merge. It never commits straight to `main`. *Check:* run it by
     hand once; the pull request shows only data changes.
-    *(Built Oct 27, 2026. Two changes to the plan: the Supabase upload
+    *(Done, Oct 27, 2026, pull requests #15 and #17. Two changes to the plan: the Supabase upload
     waits until Meng merges (a separate `supabase-sync.yml`), so the lookup
     never shows a quarter the site doesn't; and the "sale date in the
     future" cutoff became the newest filing date instead of the day the
     script runs, so a rebuild is exactly repeatable. Rebuilding locally
-    gave byte-identical files before and after that change Checked on GitHub with a forced run: the numbers matched exactly; the charts were pixel-identical but compressed differently, which `save_chart` now ignores.)*
+    gave byte-identical files before and after that change Checked on GitHub with a forced run: the numbers matched exactly; the charts were pixel-identical but compressed differently, which `save_chart` now ignores. A forced run after that fix ended "identical to main" with no pull request. The first real refresh is due when the SEC posts 2026 Q4, around January 2027.)*
 13. **Polish.** Link previews (an Open Graph image), sitemap, page titles,
     loading and error states, and a phone check. *Check:* test on a real
     phone; paste the link into LinkedIn or iMessage and see the preview.

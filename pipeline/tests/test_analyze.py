@@ -44,3 +44,25 @@ def test_small_groups_are_marked_insufficient():
     # All sectors together: 2 × 3 stages × 6 sectors = 36 rounds per size, still below.
     assert MIN_ROUNDS > 36
     assert all(r["probability_another_filing_by_month"] is None for r in result["by_amount_bucket"])
+
+
+def test_charts_are_rewritten_only_when_the_picture_changes(tmp_path):
+    import matplotlib.pyplot as plt
+
+    from analyze import save_chart
+
+    def chart(height):
+        fig, ax = plt.subplots(figsize=(2, 2))
+        ax.bar([0], [height])
+        return fig
+
+    path = tmp_path / "chart.png"
+    assert save_chart(chart(1), path) is True
+    # Same picture, different compression: the file must be left alone.
+    from PIL import Image
+
+    Image.open(path).save(path, compress_level=1)
+    recompressed = path.read_bytes()
+    assert save_chart(chart(1), path) is False
+    assert path.read_bytes() == recompressed
+    assert save_chart(chart(2), path) is True

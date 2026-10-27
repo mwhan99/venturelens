@@ -17,6 +17,7 @@ stays its own sector.
 
 from __future__ import annotations
 
+import io
 import json
 import os
 import sys
@@ -29,6 +30,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 
+import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -78,6 +80,25 @@ BUCKET_COLORS = {
     "$5–20M": "#3d5a80",
     "$20M+": "#1b263b",
 }
+
+
+def save_chart(fig: plt.Figure, path: Path) -> bool:
+    """Save a chart only if the picture changed. Returns True if the file was written.
+
+    PNG compression differs between macOS and Linux, so the same picture can come
+    out as different bytes. Comparing pixels keeps a rebuild on GitHub from
+    "changing" a chart that looks exactly the same.
+    """
+    buffer = io.BytesIO()
+    fig.savefig(buffer, format="png", dpi=160)
+    new = buffer.getvalue()
+    if path.exists():
+        old_pixels = mpimg.imread(path)
+        new_pixels = mpimg.imread(io.BytesIO(new))
+        if old_pixels.shape == new_pixels.shape and np.array_equal(old_pixels, new_pixels):
+            return False
+    path.write_bytes(new)
+    return True
 
 
 def latest_filing_date() -> pd.Timestamp:
@@ -318,7 +339,7 @@ def plot_km_by_sector(rounds: pd.DataFrame) -> None:
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     fig.tight_layout()
-    fig.savefig(KM_CHART_PATH, dpi=160)
+    save_chart(fig, KM_CHART_PATH)
     plt.close(fig)
 
 
@@ -364,7 +385,7 @@ def plot_filed_again_24m(by_amount: list[dict[str, object]]) -> None:
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     fig.tight_layout()
-    fig.savefig(FILED_AGAIN_CHART_PATH, dpi=160)
+    save_chart(fig, FILED_AGAIN_CHART_PATH)
     plt.close(fig)
 
 

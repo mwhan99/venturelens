@@ -135,7 +135,7 @@ today.
 |---|---|
 | `pipeline/download.py` | Reads the SEC's Form D data-sets page, downloads every quarterly zip (2008 Q1 → 2026 Q3, 75 zips, about 1.2 GB unzipped) into `pipeline/data/raw/`, skips ones already there, and waits 0.2 s between requests. Needs `SEC_USER_AGENT="Name email"` set, because the SEC refuses anonymous requests. `--check` only reports whether the SEC has posted a quarter newer than `benchmarks.json` (used by the quarterly job). |
 | `pipeline/build_dataset.py` | Cleans the filings into funding rounds (section 2). Writes three parquet files to `pipeline/data/processed/`, plus `data_quality_report.md` and `funnel.json` (the company and row count at each cleaning step). Takes about 20 seconds. |
-| `pipeline/analyze.py` | Kaplan–Meier analysis of "time until another Form D filing". Writes `src/data/formd/benchmarks.json` and the two charts in `docs/charts/`. |
+| `pipeline/analyze.py` | Kaplan–Meier analysis of "time until another Form D filing". Writes `src/data/formd/benchmarks.json` and the two charts in `docs/charts/`. A chart is rewritten only if its pixels change, because PNG compression differs between macOS and Linux (`save_chart`). |
 | `pipeline/summarize.py` | Plain counts and medians for the website: reads `venture_rounds.parquet`, `funnel.json` and the end date in `benchmarks.json`, and writes `src/data/formd/summary.json`. Run it after `analyze.py`. It stops with an error if the funnel and the rounds file disagree. |
 | `pipeline/excluded_companies.csv` | The hand-reviewed list of 21 companies that aren't startups but pass the automatic rules (a $48B "round" from 1 investor, a cluster of $1.5B filings from exactly 11 investors, Apollo and Goldman funds, subsidiaries of public companies). One reason per row. The build stops if a listed ID isn't in the data. |
 | `pipeline/refresh_report.py` | Writes the quarterly pull request's description: the headline numbers before and after, and every line in README, FINDINGS and CLAUDE.md that still shows an old number. Works locally too, after a rebuild. |
@@ -428,7 +428,7 @@ setup.
     never shows a quarter the site doesn't; and the "sale date in the
     future" cutoff became the newest filing date instead of the day the
     script runs, so a rebuild is exactly repeatable. Rebuilding locally
-    gave byte-identical files before and after that change.)*
+    gave byte-identical files before and after that change Checked on GitHub with a forced run: the numbers matched exactly; the charts were pixel-identical but compressed differently, which `save_chart` now ignores.)*
 13. **Polish.** Link previews (an Open Graph image), sitemap, page titles,
     loading and error states, and a phone check. *Check:* test on a real
     phone; paste the link into LinkedIn or iMessage and see the preview.
